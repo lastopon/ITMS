@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings - OPON ITMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1773&q=80') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 20, 40, 0.6);
+            z-index: 0;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(-280px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-logo i {
+            margin-right: 0.75rem;
+            font-size: 1.6rem;
+            color: #4a90e2;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-section {
+            margin-top: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4a90e2, #007aff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-role {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 100, 100, 0.2);
+            border-color: rgba(255, 100, 100, 0.3);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .top-bar.sidebar-open {
+            left: 280px;
+        }
+
+        .top-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 2rem;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .hamburger:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .breadcrumb {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .notification-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ff4757;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content.sidebar-open {
+            margin-left: 280px;
+        }
+
+        .sidebar-logo i {
+            margin-right: 0.75rem;
+            font-size: 1.6rem;
+            color: #4a90e2;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-section {
+            margin-top: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4a90e2, #007aff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 0.75rem;
+            box-shadow: 0 2px 10px rgba(74, 144, 226, 0.4);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .logout-btn {
+            width: 100%;
+            background: rgba(244, 67, 54, 0.2);
+            color: rgba(244, 67, 54, 1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(244, 67, 54, 0.8);
+            color: white;
+        }
+
+        /* Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content.sidebar-open {
+            margin-left: 280px;
+        }
+
+        /* Content Container */
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .settings-layout {
+            display: block;
+        }
+
+        .settings-content {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            color: white;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(74, 144, 226, 0.5);
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.2);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .form-select option {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox {
+            margin-right: 0.5rem;
+        }
+
+        .checkbox-label {
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4a90e2, #007aff);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #007aff, #4a90e2);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.8);
+            color: white;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 67, 54, 1);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .settings-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .card-description {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online { background: #4caf50; }
+        .status-offline { background: #f44336; }
+        .status-warning { background: #ff9800; }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .settings-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .settings-table th,
+        .settings-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .settings-table th {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: 600;
+        }
+
+        .settings-table td {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .settings-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Role Management Styles */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .role-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .role-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .role-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .role-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-super-admin {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .role-admin {
+            background: linear-gradient(45deg, #4834d4, #686de0);
+            color: white;
+        }
+
+        .role-manager {
+            background: linear-gradient(45deg, #0abde3, #006ba6);
+            color: white;
+        }
+
+        .role-technician {
+            background: linear-gradient(45deg, #10ac84, #00d2d3);
+            color: white;
+        }
+
+        .role-user {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .role-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .role-permissions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .permission-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .role-users {
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+
+        .permissions-table {
+            font-size: 0.9rem;
+        }
+
+        .permissions-table th {
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+        }
+
+        .permissions-table td {
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+        }
+
+        .permission-check {
+            color: #10ac84;
+            font-size: 1.2rem;
+        }
+
+        .permission-cross {
+            color: #ee5a52;
+            font-size: 1.2rem;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-info h4 {
+            color: white;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .user-info p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .user-role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 3rem;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .footer-content {
+            width: 100%;
+            padding: 2rem;
+        }
+
+        .footer-main {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .footer-section h3 {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-section p,
+        .footer-section li {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            padding: 0.25rem 0;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-section a i {
+            margin-right: 0.5rem;
+            width: 16px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem 2rem;
+            text-align: center;
+        }
+
+        .footer-bottom-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-version {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            font-style: italic;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-280px);
+            }
+
+            .top-bar.sidebar-open {
+                left: 0;
+            }
+
+            .main-content.sidebar-open {
+                margin-left: 0;
+            }
+
+            .settings-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .settings-layout {
+                gap: 1rem;
+            }
+
+            .settings-content {
+                padding: 1rem;
+            }
+
+            .top-bar-content {
+                padding: 0 1rem;
+            }
+
+            .breadcrumb {
+                font-size: 1rem;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-input, .form-select {
+                font-size: 16px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .settings-table {
+                min-width: 600px;
+            }
+
+            .menu-link {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-content {
+                padding: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.2rem;
+            }
+
+            .form-input, .form-select {
+                padding: 0.7rem;
+            }
+
+            .btn {
+                padding: 0.7rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .settings-content {
+                padding: 1rem;
+            }
+
+            .settings-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .card-title {
+                font-size: 1.1rem;
+            }
+
+            .form-input,
+            .form-select {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .settings-table th,
+            .settings-table td {
+                padding: 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .menu-link {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .back-btn {
+                gap: 0.25rem;
+            }
+
+            .back-btn i {
+                font-size: 0.8rem;
+            }
+
+            .footer-main {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .footer-content {
+                padding: 1.5rem;
+            }
+
+            .footer-section {
+                padding: 1rem;
+            }
+
+            .footer-bottom {
+                padding: 1rem;
+            }
+
+            .footer-bottom-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .footer-links {
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .footer-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>OPON ITMS</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/static/homepage.html#dashboard" class="nav-link" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <div class="nav-item">
+                    <a href="#users" class="nav-link active" data-section="users">
+                        <i class="fas fa-users"></i>
+                        <span>User Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#roles" class="nav-link" data-section="roles">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Role Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#booking-system" class="nav-link">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Booking System</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#assets" class="nav-link">
+                        <i class="fas fa-laptop"></i>
+                        <span>Asset Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#tickets" class="nav-link">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Ticket System</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#inventory" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#monitoring" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Monitoring & Security</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#reports" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports & Audit</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#system" class="nav-link" data-section="system">
+                        <i class="fas fa-cog"></i>
+                        <span>System Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#notifications" class="nav-link" data-section="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#integrations" class="nav-link" data-section="integrations">
+                        <i class="fas fa-plug"></i>
+                        <span>Integrations</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#backup" class="nav-link" data-section="backup">
+                        <i class="fas fa-database"></i>
+                        <span>Backup & Maintenance</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Administrator</div>
+                    <div class="user-role" id="userRole">Admin</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Top Bar -->
+    <header class="top-bar" id="topBar">
+        <div class="top-bar-content">
+            <div class="menu-toggle">
+                <button class="hamburger" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb" id="breadcrumb">System Settings</div>
+            </div>
+            <div class="top-bar-actions">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-container">
+
+        <div class="settings-layout">
+            <main class="settings-content">
+                <!-- User Management Section -->
+                <section id="users" class="content-section active">
+                    <h2 class="section-title">User Management</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">User Accounts</h3>
+                        <p class="card-description">Manage system users and their permissions</p>
+                        
+                        <div class="table-container">
+                            <table class="settings-table">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Last Login</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>admin</td>
+                                        <td>Administrator</td>
+                                        <td><span class="status-indicator status-online"></span>Active</td>
+                                        <td>Just now</td>
+                                        <td>
+                                            <button class="btn btn-secondary">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>john.doe</td>
+                                        <td>IT Manager</td>
+                                        <td><span class="status-indicator status-online"></span>Active</td>
+                                        <td>15 minutes ago</td>
+                                        <td>
+                                            <button class="btn btn-secondary">Edit</button>
+                                            <button class="btn btn-danger">Deactivate</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <button class="btn btn-primary">Add New User</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">Password Policy</h3>
+                        <p class="card-description">Configure password requirements for system security</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Minimum Password Length</label>
+                            <input type="number" class="form-input" value="8" min="6" max="32">
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="requireUppercase" class="checkbox" checked>
+                            <label for="requireUppercase" class="checkbox-label">Require uppercase letters</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="requireNumbers" class="checkbox" checked>
+                            <label for="requireNumbers" class="checkbox-label">Require numbers</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="requireSpecial" class="checkbox">
+                            <label for="requireSpecial" class="checkbox-label">Require special characters</label>
+                        </div>
+                        
+                        <button class="btn btn-primary">Save Password Policy</button>
+                    </div>
+                </section>
+
+                <!-- Roles & Permissions Section -->
+                <section id="roles" class="content-section">
+                    <h2 class="section-title">Roles & Permissions</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">System Roles</h3>
+                        <p class="card-description">Manage user roles and their associated permissions</p>
+                        
+                        <div class="roles-grid">
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <h4 class="role-title">Super Admin</h4>
+                                    <span class="role-badge role-super-admin">SUPER ADMIN</span>
+                                </div>
+                                <p class="role-description">Full system access with all permissions</p>
+                                <div class="role-permissions">
+                                    <span class="permission-tag">All Permissions</span>
+                                </div>
+                                <div class="role-users">
+                                    <small>1 user assigned</small>
+                                </div>
+                            </div>
+
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <h4 class="role-title">Administrator</h4>
+                                    <span class="role-badge role-admin">ADMIN</span>
+                                </div>
+                                <p class="role-description">Administrative access to most system functions</p>
+                                <div class="role-permissions">
+                                    <span class="permission-tag">User Management</span>
+                                    <span class="permission-tag">System Settings</span>
+                                    <span class="permission-tag">Asset Management</span>
+                                    <span class="permission-tag">Reports</span>
+                                </div>
+                                <div class="role-users">
+                                    <small>1 user assigned</small>
+                                </div>
+                            </div>
+
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <h4 class="role-title">Manager</h4>
+                                    <span class="role-badge role-manager">MANAGER</span>
+                                </div>
+                                <p class="role-description">Team management and reporting capabilities</p>
+                                <div class="role-permissions">
+                                    <span class="permission-tag">View Users</span>
+                                    <span class="permission-tag">Asset Management</span>
+                                    <span class="permission-tag">Ticket Assignment</span>
+                                    <span class="permission-tag">Reports</span>
+                                </div>
+                                <div class="role-users">
+                                    <small>1 user assigned</small>
+                                </div>
+                            </div>
+
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <h4 class="role-title">Technician</h4>
+                                    <span class="role-badge role-technician">TECH</span>
+                                </div>
+                                <p class="role-description">Asset and ticket management access</p>
+                                <div class="role-permissions">
+                                    <span class="permission-tag">Asset Management</span>
+                                    <span class="permission-tag">Ticket Management</span>
+                                    <span class="permission-tag">View Reports</span>
+                                </div>
+                                <div class="role-users">
+                                    <small>1 user assigned</small>
+                                </div>
+                            </div>
+
+                            <div class="role-card">
+                                <div class="role-header">
+                                    <h4 class="role-title">User</h4>
+                                    <span class="role-badge role-user">USER</span>
+                                </div>
+                                <p class="role-description">Basic user access for tickets and assets</p>
+                                <div class="role-permissions">
+                                    <span class="permission-tag">View Assets</span>
+                                    <span class="permission-tag">Create Tickets</span>
+                                </div>
+                                <div class="role-users">
+                                    <small>1 user assigned</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">Permission Matrix</h3>
+                        <p class="card-description">Detailed view of permissions for each role</p>
+                        
+                        <div class="table-container">
+                            <table class="settings-table permissions-table">
+                                <thead>
+                                    <tr>
+                                        <th>Permission</th>
+                                        <th>Super Admin</th>
+                                        <th>Admin</th>
+                                        <th>Manager</th>
+                                        <th>Technician</th>
+                                        <th>User</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permissionsMatrix">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">Role Assignment</h3>
+                        <p class="card-description">Assign roles to users</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Select User</label>
+                            <select class="form-input" id="userRoleSelect">
+                                <option value="">Select a user...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Assign Role</label>
+                            <select class="form-input" id="roleSelect">
+                                <option value="user">User</option>
+                                <option value="technician">Technician</option>
+                                <option value="manager">Manager</option>
+                                <option value="admin">Administrator</option>
+                                <option value="super_admin">Super Administrator</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="assignRole()">Update User Role</button>
+                    </div>
+                </section>
+
+                <!-- System Configuration Section -->
+                <section id="system" class="content-section">
+                    <h2 class="section-title">System Configuration</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">Database Configuration</h3>
+                        <p class="card-description">Configure database connection and settings</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Database Host</label>
+                            <input type="text" class="form-input" value="localhost" placeholder="Database host">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Database Port</label>
+                            <input type="number" class="form-input" value="5432" placeholder="5432">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Database Name</label>
+                            <input type="text" class="form-input" value="itms_db" placeholder="Database name">
+                        </div>
+                        
+                        <button class="btn btn-primary">Test Connection</button>
+                        <button class="btn btn-secondary">Save Configuration</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">Email/SMTP Configuration</h3>
+                        <p class="card-description">Configure email settings for notifications</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">SMTP Server</label>
+                            <input type="text" class="form-input" placeholder="smtp.example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">SMTP Port</label>
+                            <select class="form-select">
+                                <option value="587">587 (STARTTLS)</option>
+                                <option value="465">465 (SSL)</option>
+                                <option value="25">25 (Non-encrypted)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">From Email</label>
+                            <input type="email" class="form-input" placeholder="noreply@yourcompany.com">
+                        </div>
+                        
+                        <button class="btn btn-primary">Test Email</button>
+                        <button class="btn btn-secondary">Save SMTP Settings</button>
+                    </div>
+                </section>
+
+                <!-- Security & Monitoring Section -->
+                <section id="security" class="content-section">
+                    <h2 class="section-title">Security & Monitoring</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">Login Security</h3>
+                        <p class="card-description">Configure login security policies</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Max Login Attempts</label>
+                            <input type="number" class="form-input" value="5" min="3" max="10">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Lockout Duration (minutes)</label>
+                            <input type="number" class="form-input" value="15" min="5" max="60">
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enable2FA" class="checkbox">
+                            <label for="enable2FA" class="checkbox-label">Enable Two-Factor Authentication</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="logLoginAttempts" class="checkbox" checked>
+                            <label for="logLoginAttempts" class="checkbox-label">Log all login attempts</label>
+                        </div>
+                        
+                        <button class="btn btn-primary">Save Security Settings</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">System Monitoring</h3>
+                        <p class="card-description">Configure system monitoring and alerts</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">CPU Alert Threshold (%)</label>
+                            <input type="number" class="form-input" value="80" min="50" max="95">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Memory Alert Threshold (%)</label>
+                            <input type="number" class="form-input" value="85" min="50" max="95">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Disk Space Alert Threshold (%)</label>
+                            <input type="number" class="form-input" value="90" min="70" max="95">
+                        </div>
+                        
+                        <button class="btn btn-primary">Save Monitoring Settings</button>
+                    </div>
+                </section>
+
+                <!-- Notifications Section -->
+                <section id="notifications" class="content-section">
+                    <h2 class="section-title">Notifications & Alerts</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">Email Notifications</h3>
+                        <p class="card-description">Configure which events trigger email notifications</p>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="notifySystemDown" class="checkbox" checked>
+                            <label for="notifySystemDown" class="checkbox-label">System/Server down alerts</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="notifyNewUser" class="checkbox" checked>
+                            <label for="notifyNewUser" class="checkbox-label">New user registrations</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="notifySecurityBreach" class="checkbox" checked>
+                            <label for="notifySecurityBreach" class="checkbox-label">Security breach attempts</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="notifyBackupComplete" class="checkbox">
+                            <label for="notifyBackupComplete" class="checkbox-label">Backup completion</label>
+                        </div>
+                        
+                        <button class="btn btn-primary">Save Notification Settings</button>
+                    </div>
+                </section>
+
+                <!-- Integrations Section -->
+                <section id="integrations" class="content-section">
+                    <h2 class="section-title">Integrations</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">LDAP/Active Directory</h3>
+                        <p class="card-description">Configure LDAP integration for user authentication</p>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enableLDAP" class="checkbox">
+                            <label for="enableLDAP" class="checkbox-label">Enable LDAP Authentication</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">LDAP Server</label>
+                            <input type="text" class="form-input" placeholder="ldap://your-domain.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Base DN</label>
+                            <input type="text" class="form-input" placeholder="DC=your-domain,DC=com">
+                        </div>
+                        
+                        <button class="btn btn-primary">Test LDAP Connection</button>
+                        <button class="btn btn-secondary">Save LDAP Settings</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">API Integration</h3>
+                        <p class="card-description">Configure third-party API integrations</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">API Rate Limit (requests/minute)</label>
+                            <input type="number" class="form-input" value="100" min="10" max="1000">
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enableAPILogging" class="checkbox" checked>
+                            <label for="enableAPILogging" class="checkbox-label">Enable API request logging</label>
+                        </div>
+                        
+                        <button class="btn btn-primary">Generate API Key</button>
+                        <button class="btn btn-secondary">Save API Settings</button>
+                    </div>
+                </section>
+
+                <!-- Backup & Maintenance Section -->
+                <section id="backup" class="content-section">
+                    <h2 class="section-title">Backup & Maintenance</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">Backup Configuration</h3>
+                        <p class="card-description">Configure automatic backup settings</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Backup Schedule</label>
+                            <select class="form-select">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="manual">Manual Only</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Backup Time</label>
+                            <input type="time" class="form-input" value="02:00">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Retention Days</label>
+                            <input type="number" class="form-input" value="30" min="7" max="365">
+                        </div>
+                        
+                        <button class="btn btn-primary">Create Backup Now</button>
+                        <button class="btn btn-secondary">Save Backup Settings</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">System Maintenance</h3>
+                        <p class="card-description">Perform system maintenance tasks</p>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoCleanLogs" class="checkbox" checked>
+                            <label for="autoCleanLogs" class="checkbox-label">Automatically clean old logs (>90 days)</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="autoOptimizeDB" class="checkbox">
+                            <label for="autoOptimizeDB" class="checkbox-label">Automatically optimize database weekly</label>
+                        </div>
+                        
+                        <button class="btn btn-primary">Clean System Now</button>
+                        <button class="btn btn-secondary">Optimize Database</button>
+                        <button class="btn btn-danger">Restart System</button>
+                    </div>
+                </section>
+
+                <!-- Audit Logs Section -->
+                <section id="audit" class="content-section">
+                    <h2 class="section-title">Audit Logs</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">Recent System Activities</h3>
+                        <p class="card-description">View recent system activities and user actions</p>
+                        
+                        <div class="table-container">
+                            <table class="settings-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Details</th>
+                                        <th>IP Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2024-08-23 16:30:15</td>
+                                        <td>admin</td>
+                                        <td>Login</td>
+                                        <td>Successful login</td>
+                                        <td>192.168.1.100</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-08-23 16:25:42</td>
+                                        <td>john.doe</td>
+                                        <td>Settings</td>
+                                        <td>Password policy updated</td>
+                                        <td>192.168.1.105</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-08-23 16:20:18</td>
+                                        <td>system</td>
+                                        <td>Backup</td>
+                                        <td>Automatic backup completed</td>
+                                        <td>localhost</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <button class="btn btn-secondary">Export Logs</button>
+                        <button class="btn btn-danger">Clear Old Logs</button>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-main">
+                <div class="footer-section">
+                    <h3><i class="fas fa-cogs"></i> System Settings</h3>
+                    <p>Configure and manage your OPON ITMS system with comprehensive administrative controls.</p>
+                    <ul style="margin-top: 1rem;">
+                        <li><a href="#"><i class="fas fa-shield-alt"></i>Security Settings</a></li>
+                        <li><a href="#"><i class="fas fa-database"></i>Database Config</a></li>
+                        <li><a href="#"><i class="fas fa-envelope"></i>Email Setup</a></li>
+                        <li><a href="#"><i class="fas fa-backup"></i>Backup Options</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3><i class="fas fa-book"></i> Documentation</h3>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-file-alt"></i>Admin Guide</a></li>
+                        <li><a href="#"><i class="fas fa-code"></i>API Reference</a></li>
+                        <li><a href="#"><i class="fas fa-wrench"></i>Configuration</a></li>
+                        <li><a href="#"><i class="fas fa-question-circle"></i>Troubleshooting</a></li>
+                        <li><a href="#"><i class="fas fa-graduation-cap"></i>Best Practices</a></li>
+                        <li><a href="#"><i class="fas fa-video"></i>Video Tutorials</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3><i class="fas fa-headset"></i> Admin Support</h3>
+                    <p>Get help with system administration and configuration.</p>
+                    <ul style="margin-top: 1rem;">
+                        <li><a href="#"><i class="fas fa-phone"></i>24/7 Tech Support</a></li>
+                        <li><a href="#"><i class="fas fa-envelope"></i>admin@opon-itms.com</a></li>
+                        <li><a href="#"><i class="fas fa-ticket-alt"></i>Support Tickets</a></li>
+                        <li><a href="#"><i class="fas fa-users"></i>Admin Community</a></li>
+                    </ul>
+                    <div class="footer-social">
+                        <a href="#" class="social-link" title="Documentation">
+                            <i class="fas fa-book"></i>
+                        </a>
+                        <a href="#" class="social-link" title="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Support">
+                            <i class="fas fa-headset"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3><i class="fas fa-chart-bar"></i> System Info</h3>
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>System Status:</span>
+                            <span style="color: #4caf50;"><i class="fas fa-circle"></i> Online</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Last Backup:</span>
+                            <span>2 hours ago</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Version:</span>
+                            <span>1.0.0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Uptime:</span>
+                            <span>15 days</span>
+                        </div>
+                    </div>
+                    <a href="homepage.html" style="display: flex; align-items: center; padding: 0.5rem; background: rgba(74, 144, 226, 0.2); border-radius: 8px; margin-top: 1rem;">
+                        <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <div class="footer-copyright">
+                        © 2024 OPON ITMS Administration Panel. All rights reserved.
+                    </div>
+                    <div class="footer-links">
+                        <a href="#">Admin Policy</a>
+                        <a href="#">Security Guidelines</a>
+                        <a href="#">System Logs</a>
+                        <a href="#">API Keys</a>
+                    </div>
+                    <div class="footer-version">
+                        Admin Panel v1.0.0
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+
+        // Mock save functions
+        function saveSettings(settingsType) {
+            // In a real application, you would send the data to your API
+            alert(`${settingsType} settings saved successfully!`);
+        }
+
+        // Add event listeners for save buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-primary')) {
+                const buttonText = e.target.textContent;
+                if (buttonText.includes('Save') || buttonText.includes('Test') || buttonText.includes('Create')) {
+                    setTimeout(() => {
+                        alert('Operation completed successfully!');
+                    }, 100);
+                }
+            }
+        });
+
+        // Role Management Functions
+        const API_BASE_URL = 'http://localhost:8000';
+        let currentUsers = [];
+        let userToken = localStorage.getItem('access_token');
+
+        // Permission matrix data
+        const permissions = [
+            'Create User', 'Read User', 'Update User', 'Delete User',
+            'Manage Roles', 'Assign Roles', 'System Settings', 'View Audit Logs',
+            'Backup System', 'Create Asset', 'Read Asset', 'Update Asset',
+            'Delete Asset', 'Create Ticket', 'Read Ticket', 'Update Ticket',
+            'Delete Ticket', 'Assign Ticket', 'View Reports', 'Export Data'
+        ];
+
+        const rolePermissions = {
+            'Super Admin': permissions,
+            'Admin': permissions.filter(p => p !== 'Manage Roles'),
+            'Manager': ['Read User', 'Update User', 'Read Asset', 'Update Asset', 'Create Ticket', 'Read Ticket', 'Update Ticket', 'Assign Ticket', 'View Reports', 'Export Data'],
+            'Technician': ['Read User', 'Create Asset', 'Read Asset', 'Update Asset', 'Create Ticket', 'Read Ticket', 'Update Ticket', 'View Reports'],
+            'User': ['Read Asset', 'Create Ticket', 'Read Ticket']
+        };
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users?token=${userToken}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUsers = data.users;
+                    updateUsersTable();
+                    updateUserSelect();
+                } else {
+                    console.error('Failed to load users');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function updateUsersTable() {
+            const tbody = document.querySelector('#users tbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                currentUsers.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td><span class="user-role-badge role-${user.role.toLowerCase().replace('_', '-')}">${getRoleDisplayName(user.role)}</span></td>
+                        <td><span class="status-indicator ${user.is_active ? 'status-online' : 'status-offline'}"></span>${user.is_active ? 'Active' : 'Inactive'}</td>
+                        <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="btn btn-secondary btn-sm" onclick="editUser('${user.id}')">Edit</button>
+                                ${user.role !== 'super_admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        function updateUserSelect() {
+            const select = document.getElementById('userRoleSelect');
+            if (select) {
+                select.innerHTML = '<option value="">Select a user...</option>';
+                currentUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.username} (${getRoleDisplayName(user.role)})`;
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        function getRoleDisplayName(role) {
+            const roleMap = {
+                'super_admin': 'Super Admin',
+                'admin': 'Administrator',
+                'manager': 'Manager',
+                'technician': 'Technician',
+                'user': 'User'
+            };
+            return roleMap[role] || role;
+        }
+
+        function populatePermissionMatrix() {
+            const tbody = document.getElementById('permissionsMatrix');
+            if (tbody) {
+                tbody.innerHTML = '';
+                permissions.forEach(permission => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="text-align: left;">${permission}</td>
+                        <td><i class="fas fa-check permission-check"></i></td>
+                        <td><i class="fas ${rolePermissions['Admin'].includes(permission) ? 'fa-check permission-check' : 'fa-times permission-cross'}"></i></td>
+                        <td><i class="fas ${rolePermissions['Manager'].includes(permission) ? 'fa-check permission-check' : 'fa-times permission-cross'}"></i></td>
+                        <td><i class="fas ${rolePermissions['Technician'].includes(permission) ? 'fa-check permission-check' : 'fa-times permission-cross'}"></i></td>
+                        <td><i class="fas ${rolePermissions['User'].includes(permission) ? 'fa-check permission-check' : 'fa-times permission-cross'}"></i></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        async function assignRole() {
+            const userId = document.getElementById('userRoleSelect').value;
+            const role = document.getElementById('roleSelect').value;
+            
+            if (!userId || !role) {
+                alert('Please select both user and role');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users/${userId}?token=${userToken}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: role })
+                });
+
+                if (response.ok) {
+                    alert('Role assigned successfully!');
+                    await loadUsers();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error('Error assigning role:', error);
+                alert('Failed to assign role');
+            }
+        }
+
+        async function editUser(userId) {
+            const user = currentUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const newUsername = prompt('Enter new username:', user.username);
+            if (newUsername && newUsername !== user.username) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/users/${userId}?token=${userToken}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username: newUsername })
+                    });
+
+                    if (response.ok) {
+                        alert('User updated successfully!');
+                        await loadUsers();
+                    } else {
+                        const error = await response.json();
+                        alert(`Error: ${error.detail}`);
+                    }
+                } catch (error) {
+                    console.error('Error updating user:', error);
+                    alert('Failed to update user');
+                }
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/users/${userId}?token=${userToken}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        alert('User deleted successfully!');
+                        await loadUsers();
+                    } else {
+                        const error = await response.json();
+                        alert(`Error: ${error.detail}`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    alert('Failed to delete user');
+                }
+            }
+        }
+
+        // Sidebar functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+        const topBar = document.getElementById('topBar');
+        let isSidebarOpen = false;
+
+        function toggleSidebar() {
+            isSidebarOpen = !isSidebarOpen;
+            
+            if (isSidebarOpen) {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('show');
+                
+                if (window.innerWidth > 1024) {
+                    mainContent.classList.add('sidebar-open');
+                    topBar.classList.add('sidebar-open');
+                }
+            } else {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+                mainContent.classList.remove('sidebar-open');
+                topBar.classList.remove('sidebar-open');
+            }
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        // Handle sidebar navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href && href.startsWith('/static/homepage.html')) {
+                    return;
+                }
+                
+                e.preventDefault();
+                const section = this.getAttribute('data-section');
+                if (section) {
+                    showSection(section);
+                    
+                    // Update breadcrumb based on section
+                    const sectionTitles = {
+                        'users': 'User Management',
+                        'roles': 'Role Management',
+                        'system': 'System Settings',
+                        'security': 'Security & Monitoring',
+                        'notifications': 'Notifications',
+                        'integrations': 'Integrations',
+                        'backup': 'Backup & Maintenance',
+                        'audit': 'Reports & Audit'
+                    };
+                    document.getElementById('breadcrumb').textContent = sectionTitles[section] || 'Settings';
+                    
+                    if (window.innerWidth <= 1024) {
+                        toggleSidebar();
+                    }
+                }
+            });
+        });
+
+        // Show section function for settings
+        function showSection(sectionName) {
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const activeLink = document.querySelector(`[data-section="${sectionName}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Show selected section
+            const contentSection = document.getElementById(sectionName);
+            if (contentSection) {
+                contentSection.style.display = 'block';
+            }
+        }
+
+        // Load user info
+        function loadUserInfo() {
+            const userInfo = localStorage.getItem('user_info');
+            if (userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    document.getElementById('userName').textContent = user.username || 'User';
+                    document.getElementById('userRole').textContent = getRoleDisplayName(user.role) || 'User';
+                    document.getElementById('userAvatar').textContent = (user.username || 'U')[0].toUpperCase();
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                }
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_info');
+            window.location.href = '/static/login.html';
+        }
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = '/static/login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 1024 && isSidebarOpen) {
+                mainContent.classList.add('sidebar-open');
+                topBar.classList.add('sidebar-open');
+            } else if (window.innerWidth <= 1024) {
+                mainContent.classList.remove('sidebar-open');
+                topBar.classList.remove('sidebar-open');
+            }
+        });
+
+        // Handle URL hash navigation
+        function handleHashNavigation() {
+            const hash = window.location.hash.substring(1); // Remove # from hash
+            if (hash && hash !== '') {
+                showSection(hash);
+                
+                // Update breadcrumb
+                const sectionTitles = {
+                    'users': 'User Management',
+                    'roles': 'Role Management',
+                    'system': 'System Settings',
+                    'security': 'Security & Monitoring',
+                    'notifications': 'Notifications',
+                    'integrations': 'Integrations',
+                    'backup': 'Backup & Maintenance',
+                    'audit': 'Reports & Audit'
+                };
+                document.getElementById('breadcrumb').textContent = sectionTitles[hash] || 'Settings';
+            }
+        }
+
+        // Listen for hash changes
+        window.addEventListener('hashchange', handleHashNavigation);
+
+        // Initialize tooltips and other interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Settings page loaded successfully');
+            
+            if (checkAuth()) {
+                loadUserInfo();
+                
+                // Handle initial hash
+                handleHashNavigation();
+                
+                // Load users and populate permission matrix when page loads
+                if (userToken) {
+                    loadUsers();
+                }
+                populatePermissionMatrix();
+                
+                // Auto-refresh users data every 30 seconds
+                setInterval(() => {
+                    if (userToken) {
+                        loadUsers();
+                    }
+                }, 30000);
+            }
+        });
+    </script>
+</body>
+</html>

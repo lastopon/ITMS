@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPON ITMS Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1773&q=80') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 20, 40, 0.6);
+            z-index: 0;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(-280px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-logo i {
+            margin-right: 0.75rem;
+            font-size: 1.6rem;
+            color: #4a90e2;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-section {
+            margin-top: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4a90e2, #007aff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 0.75rem;
+            box-shadow: 0 2px 10px rgba(74, 144, 226, 0.4);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .logout-btn {
+            width: 100%;
+            background: rgba(244, 67, 54, 0.2);
+            color: rgba(244, 67, 54, 1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(244, 67, 54, 0.8);
+            color: white;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .top-bar.sidebar-open {
+            left: 280px;
+        }
+
+        .top-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 2rem;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .hamburger:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .breadcrumb {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .notification-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ff4757;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Notifications Dropdown */
+        .notifications-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 350px;
+            max-height: 400px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            z-index: 1001;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notifications-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-item.unread {
+            background: rgba(74, 144, 226, 0.1);
+            border-left: 3px solid #4a90e2;
+        }
+
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: #4a90e2;
+            border-radius: 50%;
+        }
+
+        .notification-title {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-message {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-time {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.7rem;
+        }
+
+        .notification-type-icon {
+            display: inline-block;
+            margin-right: 0.5rem;
+            width: 16px;
+            text-align: center;
+        }
+
+        .notification-type-success { color: #4cd964; }
+        .notification-type-warning { color: #ff9500; }
+        .notification-type-error { color: #ff3b30; }
+        .notification-type-info { color: #4a90e2; }
+
+        .notifications-footer {
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content.sidebar-open {
+            margin-left: 280px;
+        }
+
+        /* Content Container */
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .icon-blue { background: linear-gradient(45deg, #4a90e2, #007aff); }
+        .icon-green { background: linear-gradient(45deg, #10ac84, #00d2d3); }
+        .icon-orange { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .icon-purple { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .action-text {
+            flex: 1;
+        }
+
+        .action-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .action-description {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Recent Activity */
+        .recent-activity {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+        }
+
+        /* Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(-280px);
+            }
+
+            .top-bar.sidebar-open {
+                left: 0;
+            }
+
+            .main-content.sidebar-open {
+                margin-left: 0;
+            }
+
+            .notifications-dropdown {
+                width: 300px;
+                right: -50px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .top-bar {
+                height: 60px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .top-bar-content {
+                padding: 0 1rem;
+            }
+
+            .breadcrumb {
+                font-size: 0.9rem;
+            }
+
+            .dashboard-card {
+                padding: 1.5rem;
+            }
+
+            .card-value {
+                font-size: 2rem;
+            }
+
+            .quick-actions, .recent-activity {
+                padding: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
+            }
+
+            .notifications-dropdown {
+                width: calc(100vw - 2rem);
+                right: 1rem;
+                left: 1rem;
+                max-width: 350px;
+            }
+
+            /* Footer responsive */
+            footer {
+                padding: 2rem 1rem 1rem;
+            }
+
+            footer > div > div {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            /* Card header responsive */
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .card-header .card-icon {
+                align-self: flex-end;
+            }
+
+            /* Action button responsive */
+            .action-btn {
+                padding: 1rem;
+            }
+
+            .action-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1.1rem;
+            }
+
+            /* Activity list responsive */
+            .activity-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .activity-content {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .top-bar-actions {
+                gap: 0.5rem;
+            }
+
+            .notification-btn {
+                padding: 0.4rem;
+                font-size: 1.1rem;
+            }
+
+            .hamburger {
+                padding: 0.4rem;
+                font-size: 1.3rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .menu-toggle::after {
+                content: 'Dashboard';
+                color: white;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0.75rem;
+                margin-top: 55px;
+            }
+
+            .top-bar {
+                height: 55px;
+            }
+
+            .dashboard-card {
+                padding: 1rem;
+            }
+
+            .card-value {
+                font-size: 1.8rem;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .card-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .sidebar {
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .sidebar-header {
+                padding: 1rem;
+            }
+
+            .sidebar-logo {
+                font-size: 1.2rem;
+            }
+
+            .nav-link {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .nav-link i {
+                font-size: 1rem;
+            }
+
+            .quick-actions, .recent-activity {
+                padding: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.2rem;
+            }
+
+            .action-btn {
+                padding: 0.8rem;
+                gap: 0.8rem;
+            }
+
+            .action-title {
+                font-size: 0.9rem;
+            }
+
+            .action-description {
+                font-size: 0.8rem;
+            }
+
+            /* Notifications dropdown mobile */
+            .notifications-dropdown {
+                width: calc(100vw - 1rem);
+                right: 0.5rem;
+                left: 0.5rem;
+            }
+
+            .notifications-header {
+                padding: 0.8rem;
+            }
+
+            .notifications-header h3 {
+                font-size: 0.9rem;
+            }
+
+            .notification-item {
+                padding: 0.8rem;
+            }
+
+            .notification-title {
+                font-size: 0.8rem;
+            }
+
+            .notification-message {
+                font-size: 0.75rem;
+            }
+
+            /* Footer mobile */
+            footer {
+                padding: 1.5rem 0.75rem 1rem;
+            }
+
+            footer h3 {
+                font-size: 1rem;
+            }
+
+            footer ul li a {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .main-content {
+                padding: 0.5rem;
+            }
+
+            .dashboard-grid {
+                gap: 0.75rem;
+            }
+
+            .dashboard-card {
+                padding: 0.8rem;
+            }
+
+            .card-value {
+                font-size: 1.5rem;
+            }
+
+            .top-bar-content {
+                padding: 0 0.5rem;
+            }
+
+            .sidebar-header {
+                padding: 0.8rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            .action-btn {
+                padding: 0.6rem;
+                gap: 0.6rem;
+            }
+
+            .activity-item {
+                padding: 0.6rem 0;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (pointer: coarse) {
+            .nav-link, .action-btn, .notification-btn, .hamburger {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .notification-item {
+                min-height: 60px;
+                cursor: pointer;
+                -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-link {
+                min-height: 48px;
+            }
+        }
+
+        /* Improve text readability on mobile */
+        @media (max-width: 768px) {
+            .card-description, .action-description, .activity-text {
+                line-height: 1.5;
+            }
+
+            .notification-message {
+                line-height: 1.4;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-cogs"></i>
+                <span>OPON ITMS</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <div class="nav-item">
+                    <a href="#user-management" class="nav-link" data-section="user-management">
+                        <i class="fas fa-users"></i>
+                        <span>User Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#role-management" class="nav-link" data-section="role-management">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Role Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#booking-system" class="nav-link" data-section="booking-system">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Booking System</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#assets" class="nav-link" data-section="assets">
+                        <i class="fas fa-laptop"></i>
+                        <span>Asset Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#tickets" class="nav-link" data-section="tickets">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Ticket System</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#inventory" class="nav-link" data-section="inventory">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <div class="nav-item">
+                    <a href="#monitoring" class="nav-link" data-section="monitoring">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Monitoring & Security</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#reports" class="nav-link" data-section="reports">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Reports & Audit</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#system-settings" class="nav-link" data-section="system-settings">
+                        <i class="fas fa-cog"></i>
+                        <span>System Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#notifications" class="nav-link" data-section="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#integrations" class="nav-link" data-section="integrations">
+                        <i class="fas fa-plug"></i>
+                        <span>Integrations</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#backup" class="nav-link" data-section="backup">
+                        <i class="fas fa-database"></i>
+                        <span>Backup & Maintenance</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Administrator</div>
+                    <div class="user-role" id="userRole">Admin</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Top Bar -->
+    <header class="top-bar" id="topBar">
+        <div class="top-bar-content">
+            <div class="menu-toggle">
+                <button class="hamburger" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+            </div>
+            <div class="top-bar-actions">
+                <button class="notification-btn" id="notificationBtn" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge">0</span>
+                </button>
+                
+                <!-- Notifications Dropdown -->
+                <div class="notifications-dropdown" id="notificationsDropdown" style="display: none;">
+                    <div class="notifications-header">
+                        <h3 style="color: white; margin: 0; font-size: 1rem;">การแจ้งเตือน</h3>
+                        <button class="mark-all-read-btn" onclick="markAllAsRead()" style="background: none; border: none; color: rgba(255,255,255,0.7); font-size: 0.8rem; cursor: pointer;">
+                            ทำเครื่องหมายทั้งหมด
+                        </button>
+                    </div>
+                    <div class="notifications-list" id="notificationsList">
+                        <div class="loading" style="padding: 2rem; text-align: center; color: rgba(255,255,255,0.7);">
+                            <i class="fas fa-spinner fa-spin"></i> กำลังโหลด...
+                        </div>
+                    </div>
+                    <div class="notifications-footer">
+                        <a href="#" style="color: #4a90e2; font-size: 0.9rem; text-decoration: none;">ดูทั้งหมด</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-container">
+            <!-- Dashboard Section -->
+            <section id="dashboard-content" class="content-section active">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Total Users</h3>
+                            <div class="card-icon icon-blue">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="totalUsers">156</div>
+                        <p class="card-description">Active system users</p>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Active Tickets</h3>
+                            <div class="card-icon icon-orange">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="activeTickets">24</div>
+                        <p class="card-description">Open support tickets</p>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Managed Assets</h3>
+                            <div class="card-icon icon-green">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                        </div>
+                        <div class="card-value" id="managedAssets">342</div>
+                        <p class="card-description">IT assets under management</p>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">System Health</h3>
+                            <div class="card-icon icon-purple">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                        </div>
+                        <div class="card-value">98%</div>
+                        <p class="card-description">Overall system uptime</p>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h2 class="section-title">Quick Actions</h2>
+                    <div class="actions-grid">
+                        <a href="#" class="action-btn" onclick="showSection('user-management')">
+                            <div class="action-icon icon-blue">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Add New User</div>
+                                <div class="action-description">Create a new system user account</div>
+                            </div>
+                        </a>
+
+                        <a href="#" class="action-btn" onclick="showSection('tickets')">
+                            <div class="action-icon icon-orange">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Create Ticket</div>
+                                <div class="action-description">Open a new support ticket</div>
+                            </div>
+                        </a>
+
+                        <a href="#" class="action-btn" onclick="showSection('assets')">
+                            <div class="action-icon icon-green">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Add Asset</div>
+                                <div class="action-description">Register a new IT asset</div>
+                            </div>
+                        </a>
+
+                        <a href="#" class="action-btn" onclick="showSection('reports')">
+                            <div class="action-icon icon-purple">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Generate Report</div>
+                                <div class="action-description">Create system reports</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h2 class="section-title">Recent Activity</h2>
+                    <ul class="activity-list" id="activityList">
+                        <li class="activity-item">
+                            <div class="activity-icon icon-blue">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">New user account created: john.doe</div>
+                                <div class="activity-time">2 minutes ago</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon icon-orange">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">Ticket #1247 resolved: Network connectivity issue</div>
+                                <div class="activity-time">15 minutes ago</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon icon-green">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">Asset updated: Laptop Dell-0423 assigned to Sarah Wilson</div>
+                                <div class="activity-time">1 hour ago</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon icon-purple">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">System backup completed successfully</div>
+                                <div class="activity-time">3 hours ago</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- User Management Section -->
+            <section id="user-management-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">User Management</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Manage user accounts, profiles, and access permissions.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#users" class="action-btn">
+                            <div class="action-icon icon-blue">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Add New User</div>
+                                <div class="action-description">Create a new user account</div>
+                            </div>
+                        </a>
+                        <a href="/static/settings.html#users" class="action-btn">
+                            <div class="action-icon icon-green">
+                                <i class="fas fa-users-cog"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Manage Users</div>
+                                <div class="action-description">Edit user profiles and settings</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Role Management Section -->
+            <section id="role-management-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Role Management</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Manage user roles and permissions across the system.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#roles" class="action-btn">
+                            <div class="action-icon icon-purple">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Role Permissions</div>
+                                <div class="action-description">Configure role-based permissions</div>
+                            </div>
+                        </a>
+                        <a href="/static/settings.html#roles" class="action-btn">
+                            <div class="action-icon icon-orange">
+                                <i class="fas fa-user-tag"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Assign Roles</div>
+                                <div class="action-description">Assign roles to users</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Booking System Section -->
+            <section id="booking-system-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Booking System</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">จองและจัดการทรัพยากรต่างๆ ในองค์กร เช่น รถ ห้องประชุม และอุปกรณ์ IT</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/booking.html" class="action-btn">
+                            <div class="action-icon icon-blue">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">สร้างการจอง</div>
+                                <div class="action-description">จองทรัพยากรใหม่</div>
+                            </div>
+                        </a>
+                        <a href="/static/booking.html#my-bookings" class="action-btn">
+                            <div class="action-icon icon-green">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">การจองของฉัน</div>
+                                <div class="action-description">ดูและจัดการการจอง</div>
+                            </div>
+                        </a>
+                        <a href="/static/booking.html#calendar" class="action-btn">
+                            <div class="action-icon icon-orange">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">ปฏิทินการจอง</div>
+                                <div class="action-description">ดูปฏิทินทั้งหมด</div>
+                            </div>
+                        </a>
+                        <a href="/static/booking.html#resources" class="action-btn">
+                            <div class="action-icon icon-purple">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">ทรัพยากรทั้งหมด</div>
+                                <div class="action-description">ดูรายการทรัพยากร</div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Quick Booking Stats -->
+                    <div class="dashboard-grid" style="margin-top: 2rem;">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3 class="card-title">การจองวันนี้</h3>
+                                <div class="card-icon icon-blue">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                            </div>
+                            <div class="card-value" id="todayBookings">8</div>
+                            <div class="card-description">การจองที่กำลังใช้งาน</div>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3 class="card-title">รอการอนุมัติ</h3>
+                                <div class="card-icon icon-orange">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                            <div class="card-value" id="pendingBookings">3</div>
+                            <div class="card-description">การจองที่รอการอนุมัติ</div>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3 class="card-title">ทรัพยากรทั้งหมด</h3>
+                                <div class="card-icon icon-green">
+                                    <i class="fas fa-cubes"></i>
+                                </div>
+                            </div>
+                            <div class="card-value" id="totalResources">24</div>
+                            <div class="card-description">รถ, ห้องประชุม, อุปกรณ์</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="assets-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Asset Management</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8);">Asset management functionality will be implemented here.</p>
+                </div>
+            </section>
+
+            <section id="tickets-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Ticket System</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8);">Ticket system functionality will be implemented here.</p>
+                </div>
+            </section>
+
+            <section id="inventory-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Inventory Management</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8);">Inventory management functionality will be implemented here.</p>
+                </div>
+            </section>
+
+            <section id="monitoring-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Monitoring & Security</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Monitor system performance, security threats, and user activities.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#security" class="action-btn">
+                            <div class="action-icon icon-orange">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Security Settings</div>
+                                <div class="action-description">Configure security policies</div>
+                            </div>
+                        </a>
+                        <a href="/static/settings.html#audit" class="action-btn">
+                            <div class="action-icon icon-blue">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Activity Monitor</div>
+                                <div class="action-description">View system activities</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reports-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Reports & Audit</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Generate reports and view audit trails for compliance and analysis.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#audit" class="action-btn">
+                            <div class="action-icon icon-purple">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Audit Logs</div>
+                                <div class="action-description">View detailed audit trails</div>
+                            </div>
+                        </a>
+                        <a href="#" class="action-btn" onclick="generateReport()">
+                            <div class="action-icon icon-green">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Export Reports</div>
+                                <div class="action-description">Generate and export reports</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Settings Section -->
+            <section id="system-settings-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">System Settings</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Configure core system settings and preferences.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#system" class="action-btn">
+                            <div class="action-icon icon-blue">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">System Configuration</div>
+                                <div class="action-description">Configure system settings</div>
+                            </div>
+                        </a>
+                        <a href="/static/settings.html#backup" class="action-btn">
+                            <div class="action-icon icon-green">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Backup Settings</div>
+                                <div class="action-description">Configure backup and maintenance</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Notifications Section -->
+            <section id="notifications-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Notifications</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Manage system notifications and alert settings.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#notifications" class="action-btn">
+                            <div class="action-icon icon-orange">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Notification Settings</div>
+                                <div class="action-description">Configure alerts and notifications</div>
+                            </div>
+                        </a>
+                        <a href="#" class="action-btn" onclick="testNotification()">
+                            <div class="action-icon icon-purple">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Test Notifications</div>
+                                <div class="action-description">Send test notifications</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Integrations Section -->
+            <section id="integrations-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Integrations</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Manage external system integrations and API connections.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#integrations" class="action-btn">
+                            <div class="action-icon icon-blue">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Configure Integrations</div>
+                                <div class="action-description">Set up external connections</div>
+                            </div>
+                        </a>
+                        <a href="#" class="action-btn" onclick="testConnections()">
+                            <div class="action-icon icon-green">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Test Connections</div>
+                                <div class="action-description">Verify integration status</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Backup & Maintenance Section -->
+            <section id="backup-content" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h2 class="section-title">Backup & Maintenance</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1.5rem;">Manage system backups and perform maintenance tasks.</p>
+                    
+                    <div class="actions-grid">
+                        <a href="/static/settings.html#backup" class="action-btn">
+                            <div class="action-icon icon-purple">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Backup Settings</div>
+                                <div class="action-description">Configure automatic backups</div>
+                            </div>
+                        </a>
+                        <a href="#" class="action-btn" onclick="createBackup()">
+                            <div class="action-icon icon-orange">
+                                <i class="fas fa-save"></i>
+                            </div>
+                            <div class="action-text">
+                                <div class="action-title">Create Backup</div>
+                                <div class="action-description">Start backup process now</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 3rem 2rem 1rem; margin-top: 4rem; position: relative; z-index: 1;">
+        <div style="max-width: 1400px; margin: 0 auto;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h3 style="color: white; font-size: 1.2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-shield-alt" style="color: #4a90e2;"></i>
+                        OPON ITMS
+                    </h3>
+                    <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.6; margin-bottom: 1rem;">
+                        ระบบจัดการเทคโนโลยีสารสนเทศที่ครบครันสำหรับองค์กรสมัยใหม่
+                    </p>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="#" style="color: rgba(255, 255, 255, 0.6); font-size: 1.2rem; transition: color 0.3s;">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" style="color: rgba(255, 255, 255, 0.6); font-size: 1.2rem; transition: color 0.3s;">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" style="color: rgba(255, 255, 255, 0.6); font-size: 1.2rem; transition: color 0.3s;">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="color: white; font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-cogs" style="color: #4a90e2;"></i>
+                        การจัดการ
+                    </h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="#user-management" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-users" style="width: 16px;"></i>
+                                จัดการผู้ใช้
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="#booking-system" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-calendar-check" style="width: 16px;"></i>
+                                ระบบจองทรัพยากร
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="#assets" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-laptop" style="width: 16px;"></i>
+                                จัดการทรัพย์สิน
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="#tickets" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-ticket-alt" style="width: 16px;"></i>
+                                ระบบ Ticket
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 style="color: white; font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-calendar-check" style="color: #4a90e2;"></i>
+                        ระบบจอง
+                    </h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="/static/booking.html#resources" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-car" style="width: 16px;"></i>
+                                จองรถยนต์
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="/static/booking.html#resources" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-users" style="width: 16px;"></i>
+                                จองห้องประชุม
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="/static/booking.html#resources" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-laptop" style="width: 16px;"></i>
+                                จองอุปกรณ์ IT
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="/static/booking.html#calendar" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-calendar-alt" style="width: 16px;"></i>
+                                ปฏิทินการจอง
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 style="color: white; font-size: 1.1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-life-ring" style="color: #4a90e2;"></i>
+                        ความช่วยเหลือ
+                    </h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="/docs" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-book" style="width: 16px;"></i>
+                                คู่มือการใช้งาน
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="/api/docs" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-code" style="width: 16px;"></i>
+                                API Documentation
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="#" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-phone" style="width: 16px;"></i>
+                                ติดต่อสนับสนุน
+                            </a>
+                        </li>
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="/health" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s;">
+                                <i class="fas fa-heartbeat" style="width: 16px;"></i>
+                                สถานะระบบ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 2rem; text-align: center;">
+                <p style="color: rgba(255, 255, 255, 0.6); margin: 0;">
+                    © 2024 OPON ITMS. สร้างด้วย ❤️ สำหรับการจัดการเทคโนโลยีสารสนเทศที่มีประสิทธิภาพ
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+        const topBar = document.getElementById('topBar');
+        const breadcrumb = document.getElementById('breadcrumb');
+        let isSidebarOpen = false;
+
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            isSidebarOpen = !isSidebarOpen;
+            
+            if (isSidebarOpen) {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('show');
+                
+                // Only adjust main content on desktop
+                if (window.innerWidth > 1024) {
+                    mainContent.classList.add('sidebar-open');
+                    topBar.classList.add('sidebar-open');
+                }
+            } else {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+                mainContent.classList.remove('sidebar-open');
+                topBar.classList.remove('sidebar-open');
+            }
+        }
+
+        // Event listeners
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        // Navigation functionality
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.getAttribute('href') === '/static/settings.html') {
+                    // Allow default navigation for settings
+                    return;
+                }
+                
+                e.preventDefault();
+                const section = this.getAttribute('data-section');
+                if (section) {
+                    showSection(section);
+                    
+                    // Close sidebar on mobile after navigation
+                    if (window.innerWidth <= 1024) {
+                        toggleSidebar();
+                    }
+                }
+            });
+        });
+
+        // Show section function
+        function showSection(sectionName) {
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const activeLink = document.querySelector(`[data-section="${sectionName}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Show selected section
+            const contentSection = document.getElementById(`${sectionName}-content`);
+            if (contentSection) {
+                contentSection.style.display = 'block';
+            }
+
+            // Update breadcrumb
+            const sectionTitles = {
+                'dashboard': 'Dashboard',
+                'user-management': 'User Management',
+                'role-management': 'Role Management',
+                'booking-system': 'Booking System',
+                'assets': 'Asset Management',
+                'tickets': 'Ticket System',
+                'inventory': 'Inventory Management',
+                'monitoring': 'Monitoring & Security',
+                'reports': 'Reports & Audit',
+                'system-settings': 'System Settings',
+                'notifications': 'Notifications',
+                'integrations': 'Integrations',
+                'backup': 'Backup & Maintenance'
+            };
+            
+            breadcrumb.textContent = sectionTitles[sectionName] || 'Dashboard';
+        }
+
+        // Load user info
+        function loadUserInfo() {
+            const userInfo = localStorage.getItem('user_info');
+            if (userInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    document.getElementById('userName').textContent = user.username || 'User';
+                    document.getElementById('userRole').textContent = getRoleDisplayName(user.role) || 'User';
+                    document.getElementById('userAvatar').textContent = (user.username || 'U')[0].toUpperCase();
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                }
+            }
+        }
+
+        function getRoleDisplayName(role) {
+            const roleMap = {
+                'super_admin': 'Super Admin',
+                'admin': 'Administrator',
+                'manager': 'Manager',
+                'technician': 'Technician',
+                'user': 'User'
+            };
+            return roleMap[role] || role;
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_info');
+            window.location.href = '/static/login.html';
+        }
+
+        // Load dashboard stats
+        async function loadDashboardStats() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                try {
+                    const response = await fetch(`http://localhost:8000/api/stats?token=${token}`);
+                    if (response.ok) {
+                        const stats = await response.json();
+                        document.getElementById('totalUsers').textContent = stats.users;
+                        document.getElementById('activeTickets').textContent = stats.tickets;
+                        document.getElementById('managedAssets').textContent = stats.assets;
+                        
+                        // Update booking stats if elements exist
+                        const todayBookingsEl = document.getElementById('todayBookings');
+                        const pendingBookingsEl = document.getElementById('pendingBookings');
+                        const totalResourcesEl = document.getElementById('totalResources');
+                        
+                        if (todayBookingsEl) todayBookingsEl.textContent = stats.today_bookings;
+                        if (pendingBookingsEl) pendingBookingsEl.textContent = stats.pending_bookings;
+                        if (totalResourcesEl) totalResourcesEl.textContent = stats.total_resources;
+                    }
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                try {
+                    const response = await fetch(`http://localhost:8000/api/audit-logs?limit=5&token=${token}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateActivityList(data.logs);
+                    }
+                } catch (error) {
+                    console.error('Error loading activity:', error);
+                }
+            }
+        }
+
+        function updateActivityList(logs) {
+            const activityList = document.getElementById('activityList');
+            if (logs && logs.length > 0) {
+                activityList.innerHTML = '';
+                logs.forEach(log => {
+                    const li = document.createElement('li');
+                    li.className = 'activity-item';
+                    li.innerHTML = `
+                        <div class="activity-icon icon-blue">
+                            <i class="fas fa-${getActivityIcon(log.action)}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">${log.action}: ${log.details}</div>
+                            <div class="activity-time">${formatTime(log.timestamp)}</div>
+                        </div>
+                    `;
+                    activityList.appendChild(li);
+                });
+            }
+        }
+
+        function getActivityIcon(action) {
+            const iconMap = {
+                'Login': 'sign-in-alt',
+                'Logout': 'sign-out-alt',
+                'Settings': 'cog',
+                'User Created': 'user-plus',
+                'User Updated': 'user-edit',
+                'Backup': 'database',
+                'System Restart': 'power-off'
+            };
+            return iconMap[action] || 'circle';
+        }
+
+        function formatTime(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diff = now - time;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
+            return time.toLocaleDateString();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 1024 && isSidebarOpen) {
+                mainContent.classList.add('sidebar-open');
+                topBar.classList.add('sidebar-open');
+            } else if (window.innerWidth <= 1024) {
+                mainContent.classList.remove('sidebar-open');
+                topBar.classList.remove('sidebar-open');
+            }
+        });
+
+        // Helper functions for new sections
+        async function generateReport() {
+            alert('Generating system report...');
+            // Implementation will be added later
+        }
+
+        async function testNotification() {
+            alert('Test notification sent!');
+            // Implementation will be added later
+        }
+
+        async function testConnections() {
+            alert('Testing system connections...');
+            // Implementation will be added later
+        }
+
+        async function createBackup() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/api/backup/create?token=${token}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`Backup created successfully: ${result.backup_id}`);
+                } else {
+                    alert('Failed to create backup');
+                }
+            } catch (error) {
+                console.error('Error creating backup:', error);
+                alert('Error creating backup');
+            }
+        }
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = '/static/login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Notifications functionality
+        let notifications = [];
+        let unreadCount = 0;
+
+        async function loadNotifications() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/api/notifications?limit=10&token=${token}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    notifications = data.notifications || [];
+                    updateNotificationBadge();
+                    updateNotificationsList();
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        function updateNotificationBadge() {
+            unreadCount = notifications.filter(n => !n.is_read).length;
+            const badge = document.getElementById('notificationBadge');
+            badge.textContent = unreadCount;
+            badge.style.display = unreadCount > 0 ? 'block' : 'none';
+        }
+
+        function updateNotificationsList() {
+            const notificationsList = document.getElementById('notificationsList');
+            
+            if (notifications.length === 0) {
+                notificationsList.innerHTML = `
+                    <div style="padding: 2rem; text-align: center; color: rgba(255,255,255,0.7);">
+                        <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>ไม่มีการแจ้งเตือน</p>
+                    </div>
+                `;
+                return;
+            }
+
+            notificationsList.innerHTML = '';
+            notifications.forEach(notification => {
+                const notificationEl = document.createElement('div');
+                notificationEl.className = `notification-item ${!notification.is_read ? 'unread' : ''}`;
+                notificationEl.style.position = 'relative';
+                
+                notificationEl.innerHTML = `
+                    <div class="notification-title">
+                        <i class="notification-type-icon notification-type-${notification.type} fas fa-${getNotificationIcon(notification.type)}"></i>
+                        ${notification.title}
+                    </div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${formatNotificationTime(notification.created_at)}</div>
+                `;
+                
+                notificationEl.addEventListener('click', () => markAsRead(notification.id));
+                notificationsList.appendChild(notificationEl);
+            });
+        }
+
+        function getNotificationIcon(type) {
+            const iconMap = {
+                'info': 'info-circle',
+                'success': 'check-circle',
+                'warning': 'exclamation-triangle',
+                'error': 'exclamation-circle',
+                'booking_approved': 'calendar-check'
+            };
+            return iconMap[type] || 'bell';
+        }
+
+        function formatNotificationTime(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diff = now - time;
+            
+            if (diff < 60000) return 'เมื่อสักครู่';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} นาทีที่แล้ว`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} ชั่วโมงที่แล้ว`;
+            if (diff < 604800000) return `${Math.floor(diff / 86400000)} วันที่แล้ว`;
+            return time.toLocaleDateString('th-TH');
+        }
+
+        async function markAsRead(notificationId) {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/api/notifications/${notificationId}/read?token=${token}`, {
+                    method: 'PUT'
+                });
+                
+                if (response.ok) {
+                    // Update local notification state
+                    const notification = notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.is_read = true;
+                        updateNotificationBadge();
+                        updateNotificationsList();
+                    }
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        async function markAllAsRead() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/api/notifications/mark-all-read?token=${token}`, {
+                    method: 'PUT'
+                });
+                
+                if (response.ok) {
+                    // Update all local notifications
+                    notifications.forEach(n => n.is_read = true);
+                    updateNotificationBadge();
+                    updateNotificationsList();
+                }
+            } catch (error) {
+                console.error('Error marking all notifications as read:', error);
+            }
+        }
+
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationsDropdown');
+            const isVisible = dropdown.style.display === 'block';
+            
+            if (isVisible) {
+                dropdown.style.display = 'none';
+            } else {
+                dropdown.style.display = 'block';
+                loadNotifications(); // Refresh notifications when opening
+            }
+        }
+
+        // Close notifications dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('notificationsDropdown');
+            const notificationBtn = document.getElementById('notificationBtn');
+            
+            if (!notificationBtn.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (checkAuth()) {
+                loadUserInfo();
+                loadDashboardStats();
+                loadRecentActivity();
+                loadNotifications();
+                
+                // Auto-refresh data every 30 seconds
+                setInterval(() => {
+                    loadDashboardStats();
+                    loadRecentActivity();
+                    loadNotifications();
+                }, 30000);
+            }
+        });
+    </script>
+</body>
+</html>

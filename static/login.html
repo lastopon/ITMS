@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPON Login & Signup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1773&q=80') no-repeat center center fixed;
+            background-size: cover;
+            padding: 1rem;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 20, 40, 0.6);
+            z-index: 0;
+        }
+        
+        .credit {
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            z-index: 1;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 0 auto;
+        }
+        
+        .form-container {
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .form-container h2 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-toggle {
+            display: flex;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 5px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .toggle-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-group input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-group i {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #4a90e2, #007aff);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            background: linear-gradient(45deg, #007aff, #4a90e2);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .login-form, .signup-form {
+            display: none;
+        }
+        
+        .login-form.active, .signup-form.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .message.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+        
+        .loading {
+            display: none;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 10px;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .dashboard-link {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .dashboard-link a {
+            color: #4caf50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .dashboard-link a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+            
+            .credit {
+                font-size: 1rem;
+                top: 1rem;
+                left: 1rem;
+            }
+            
+            .container {
+                max-width: 100%;
+                margin: 1rem 0;
+                border-radius: 15px;
+            }
+            
+            .form-container {
+                padding: 1.5rem;
+            }
+            
+            .form-container h2 {
+                font-size: 1.8rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .form-toggle {
+                margin-bottom: 1.5rem;
+            }
+            
+            .toggle-btn {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .form-group {
+                margin-bottom: 1.25rem;
+            }
+            
+            .form-group input {
+                padding: 0.8rem 2.5rem 0.8rem 1rem;
+                font-size: 0.95rem;
+            }
+            
+            .form-group i {
+                right: 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .submit-btn {
+                padding: 0.8rem;
+                font-size: 0.95rem;
+                margin-top: 0.5rem;
+            }
+            
+            .message {
+                margin-top: 1rem;
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .loading {
+                margin-top: 0.5rem;
+                font-size: 0.9rem;
+            }
+            
+            .dashboard-link {
+                margin-top: 1rem;
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 320px) {
+            .container {
+                margin: 0.5rem 0;
+            }
+            
+            .form-container {
+                padding: 1rem;
+            }
+            
+            .form-container h2 {
+                font-size: 1.6rem;
+            }
+            
+            .form-group input {
+                padding: 0.7rem 2rem 0.7rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .submit-btn {
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+
+            .footer {
+                margin-top: 2rem;
+            }
+
+            .footer-content {
+                padding: 1rem;
+            }
+
+            .footer-links {
+                gap: 0.5rem;
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 2rem;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .footer-content {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .footer-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-social {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="credit">OPON System</div>
+    
+    <div class="main-content">
+        <div class="container">
+        <div class="form-container">
+            <h2>Welcome</h2>
+            
+            <div class="form-toggle">
+                <button class="toggle-btn active" id="loginToggle">Login</button>
+                <button class="toggle-btn" id="signupToggle">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="login-form active" id="loginForm">
+                <form id="loginFormSubmit">
+                    <div class="form-group">
+                        <input type="text" placeholder="Username" id="loginUsername" required>
+                        <i class="fas fa-user"></i>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" id="loginPassword" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+            </div>
+            
+            <!-- Signup Form -->
+            <div class="signup-form" id="signupForm">
+                <form id="signupFormSubmit">
+                    <div class="form-group">
+                        <input type="text" placeholder="Username" id="signupUsername" required>
+                        <i class="fas fa-user"></i>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" id="signupEmail" required>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" id="signupPassword" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">Sign Up</button>
+                </form>
+            </div>
+            
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i> Processing...
+            </div>
+            
+            <div class="message" id="message"></div>
+            
+            <div class="dashboard-link" id="dashboardLink">
+                <a href="/docs">Go to API Dashboard</a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        
+        // Toggle between login and signup forms
+        document.getElementById('loginToggle').addEventListener('click', function() {
+            showLoginForm();
+        });
+        
+        document.getElementById('signupToggle').addEventListener('click', function() {
+            showSignupForm();
+        });
+        
+        function showLoginForm() {
+            document.getElementById('loginToggle').classList.add('active');
+            document.getElementById('signupToggle').classList.remove('active');
+            document.getElementById('loginForm').classList.add('active');
+            document.getElementById('signupForm').classList.remove('active');
+            clearMessage();
+        }
+        
+        function showSignupForm() {
+            document.getElementById('signupToggle').classList.add('active');
+            document.getElementById('loginToggle').classList.remove('active');
+            document.getElementById('signupForm').classList.add('active');
+            document.getElementById('loginForm').classList.remove('active');
+            clearMessage();
+        }
+        
+        // Handle login form submission
+        document.getElementById('loginFormSubmit').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user_info', JSON.stringify(data.user));
+                    showMessage('Login successful! Redirecting to dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/static/homepage.html';
+                    }, 1500);
+                } else {
+                    showMessage(data.detail || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            }
+            
+            hideLoading();
+        });
+        
+        // Handle signup form submission
+        document.getElementById('signupFormSubmit').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Registration successful! You can now login.', 'success');
+                    setTimeout(() => {
+                        showLoginForm();
+                        document.getElementById('loginUsername').value = username;
+                    }, 2000);
+                } else {
+                    showMessage(data.detail || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            }
+            
+            hideLoading();
+        });
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+        
+        function clearMessage() {
+            document.getElementById('message').style.display = 'none';
+            document.getElementById('dashboardLink').style.display = 'none';
+        }
+        
+        // Check if user is already logged in
+        if (localStorage.getItem('access_token')) {
+            showMessage('You are already logged in! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = '/static/homepage.html';
+            }, 2000);
+        }
+    </script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-copyright">
+                © 2024 OPON ITMS. All rights reserved. | Version 1.0.0
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

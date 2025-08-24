@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking System - OPON ITMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1773&q=80') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 20, 40, 0.6);
+            z-index: 0;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(-280px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-logo i {
+            margin-right: 0.75rem;
+            font-size: 1.6rem;
+            color: #4a90e2;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-section {
+            margin-top: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4a90e2, #007aff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-role {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 100, 100, 0.2);
+            border-color: rgba(255, 100, 100, 0.3);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .top-bar.sidebar-open {
+            left: 280px;
+        }
+
+        .top-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 2rem;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .hamburger:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .breadcrumb {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .notification-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ff4757;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content.sidebar-open {
+            margin-left: 280px;
+        }
+
+        /* Content Container */
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Booking System Styles */
+        .booking-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Resource Cards */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .resource-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .resource-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .resource-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .resource-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-available {
+            background: rgba(76, 217, 100, 0.2);
+            color: #4cd964;
+            border: 1px solid rgba(76, 217, 100, 0.3);
+        }
+
+        .status-booked {
+            background: rgba(255, 59, 48, 0.2);
+            color: #ff3b30;
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+
+        .status-maintenance {
+            background: rgba(255, 149, 0, 0.2);
+            color: #ff9500;
+            border: 1px solid rgba(255, 149, 0, 0.3);
+        }
+
+        .resource-info {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .resource-specs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .spec-tag {
+            background: rgba(74, 144, 226, 0.2);
+            color: #4a90e2;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(74, 144, 226, 0.3);
+        }
+
+        .resource-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4a90e2, #007aff);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Category Filter */
+        .filter-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.6rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Booking Form */
+        .booking-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: white;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: rgba(74, 144, 226, 0.5);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .calendar-nav button {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calendar-nav button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-280px);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content.sidebar-open {
+                margin-left: 0;
+            }
+            
+            .top-bar.sidebar-open {
+                left: 0;
+            }
+            
+            .tab-navigation {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .top-bar-content {
+                padding: 0 1rem;
+            }
+            
+            .breadcrumb {
+                font-size: 1rem;
+            }
+            
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+
+        .loading i {
+            margin-right: 0.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-calendar-check"></i>
+                <span>OPON ITMS</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/static/homepage.html#dashboard" class="nav-link" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#user-management" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>User Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#role-management" class="nav-link">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Role Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#booking-dashboard" class="nav-link active" data-section="booking-dashboard">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Booking System</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#assets" class="nav-link">
+                        <i class="fas fa-laptop"></i>
+                        <span>Asset Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#tickets" class="nav-link">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Ticket System</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#inventory" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#monitoring" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Monitoring & Security</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/homepage.html#reports" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports & Audit</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/settings.html#system" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>System Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/settings.html#notifications" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/settings.html#integrations" class="nav-link">
+                        <i class="fas fa-plug"></i>
+                        <span>Integrations</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/static/settings.html#backup" class="nav-link">
+                        <i class="fas fa-database"></i>
+                        <span>Backup & Maintenance</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Administrator</div>
+                    <div class="user-role" id="userRole">Admin</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Top Bar -->
+    <header class="top-bar" id="topBar">
+        <div class="top-bar-content">
+            <div class="menu-toggle">
+                <button class="hamburger" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb" id="breadcrumb">Booking System</div>
+            </div>
+            <div class="top-bar-actions">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-container">
+            <!-- Booking Header -->
+            <div class="booking-header">
+                <h1 class="section-title">
+                    <i class="fas fa-calendar-check" style="margin-right: 1rem;"></i>
+                    ระบบจองทรัพยากร
+                </h1>
+                <p class="section-description">
+                    จองและจัดการทรัพยากรต่างๆ ในองค์กร รวมถึง รถยนต์ ห้องประชุม อุปกรณ์ IT และสิ่งอำนวยความสะดวกอื่นๆ
+                </p>
+
+                <!-- Tab Navigation -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="showSection('resources')" id="tab-resources">
+                        <i class="fas fa-list"></i>
+                        ทรัพยากรทั้งหมด
+                    </button>
+                    <button class="tab-btn" onclick="showSection('book')" id="tab-book">
+                        <i class="fas fa-calendar-plus"></i>
+                        สร้างการจอง
+                    </button>
+                    <button class="tab-btn" onclick="showSection('my-bookings')" id="tab-my-bookings">
+                        <i class="fas fa-calendar-check"></i>
+                        การจองของฉัน
+                    </button>
+                    <button class="tab-btn" onclick="showSection('calendar')" id="tab-calendar">
+                        <i class="fas fa-calendar-alt"></i>
+                        ปฏิทินการจอง
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resources Section -->
+            <div id="resources-content" class="content-section active">
+                <h2 style="color: white; font-size: 1.5rem; margin-bottom: 1.5rem;">
+                    <i class="fas fa-cubes" style="margin-right: 0.5rem;"></i>
+                    ทรัพยากรทั้งหมด
+                </h2>
+
+                <!-- Category Filter -->
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterResources('all')">
+                        <i class="fas fa-th-large"></i> ทั้งหมด
+                    </button>
+                    <button class="filter-btn" onclick="filterResources('transportation')">
+                        <i class="fas fa-car"></i> ยานพาหนะ
+                    </button>
+                    <button class="filter-btn" onclick="filterResources('meeting_rooms')">
+                        <i class="fas fa-users"></i> ห้องประชุม
+                    </button>
+                    <button class="filter-btn" onclick="filterResources('it_equipment')">
+                        <i class="fas fa-laptop"></i> อุปกรณ์ IT
+                    </button>
+                </div>
+
+                <!-- Resources Grid -->
+                <div class="resources-grid" id="resourcesGrid">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        กำลังโหลดทรัพยากร...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Section -->
+            <div id="book-content" class="content-section">
+                <h2 style="color: white; font-size: 1.5rem; margin-bottom: 1.5rem;">
+                    <i class="fas fa-calendar-plus" style="margin-right: 0.5rem;"></i>
+                    สร้างการจองใหม่
+                </h2>
+
+                <form class="booking-form" id="bookingForm">
+                    <div class="form-group">
+                        <label class="form-label" for="resourceSelect">เลือกทรัพยากร</label>
+                        <select class="form-select" id="resourceSelect" required>
+                            <option value="">กรุณาเลือกทรัพยากร</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="bookingTitle">หัวข้อการจอง</label>
+                        <input type="text" class="form-input" id="bookingTitle" placeholder="เช่น ประชุมทีมพัฒนา" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="startDate">วันที่เริ่มต้น</label>
+                            <input type="datetime-local" class="form-input" id="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="endDate">วันที่สิ้นสุด</label>
+                            <input type="datetime-local" class="form-input" id="endDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="purpose">วัตถุประสงค์</label>
+                        <input type="text" class="form-input" id="purpose" placeholder="เช่น ประชุมทีม, งานนำเสนอ">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="attendees">จำนวนผู้เข้าร่วม</label>
+                            <input type="number" class="form-input" id="attendees" min="1" placeholder="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="contactInfo">ข้อมูลติดต่อ</label>
+                            <input type="email" class="form-input" id="contactInfo" placeholder="อีเมลหรือเบอร์โทร">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="description">รายละเอียดเพิ่มเติม</label>
+                        <textarea class="form-textarea" id="description" rows="4" placeholder="รายละเอียดการจอง..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="specialRequirements">ความต้องการพิเศษ</label>
+                        <textarea class="form-textarea" id="specialRequirements" rows="3" placeholder="เช่น ต้องการ projector, microphone"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-calendar-plus"></i>
+                            สร้างการจอง
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- My Bookings Section -->
+            <div id="my-bookings-content" class="content-section">
+                <h2 style="color: white; font-size: 1.5rem; margin-bottom: 1.5rem;">
+                    <i class="fas fa-calendar-check" style="margin-right: 0.5rem;"></i>
+                    การจองของฉัน
+                </h2>
+
+                <div id="myBookingsGrid">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        กำลังโหลดการจอง...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Section -->
+            <div id="calendar-content" class="content-section">
+                <h2 style="color: white; font-size: 1.5rem; margin-bottom: 1.5rem;">
+                    <i class="fas fa-calendar-alt" style="margin-right: 0.5rem;"></i>
+                    ปฏิทินการจอง
+                </h2>
+
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <h3 class="calendar-title" id="calendarTitle">สิงหาคม 2024</h3>
+                        <div class="calendar-nav">
+                            <button onclick="changeMonth(-1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button onclick="changeMonth(1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="calendarGrid">
+                        <div class="loading">
+                            <i class="fas fa-spinner"></i>
+                            กำลังโหลดปฏิทิน...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let resources = [];
+        let bookings = [];
+        let currentDate = new Date();
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            if (checkAuth()) {
+                loadUserInfo();
+                loadResources();
+                loadMyBookings();
+                updateCalendar();
+                initializeDateInputs();
+            }
+        });
+
+        // Authentication
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = '/static/login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function loadUserInfo() {
+            const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+            if (userInfo.username) {
+                document.getElementById('userName').textContent = userInfo.full_name || userInfo.username;
+                document.getElementById('userRole').textContent = userInfo.role || 'User';
+                document.getElementById('userAvatar').textContent = (userInfo.full_name || userInfo.username).charAt(0).toUpperCase();
+                currentUser = userInfo;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_info');
+            window.location.href = '/static/login.html';
+        }
+
+        // Sidebar functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+        const topBar = document.getElementById('topBar');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('show');
+            mainContent.classList.toggle('sidebar-open');
+            topBar.classList.toggle('sidebar-open');
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        // Tab functionality
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-content');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Add active class to selected tab
+            const targetTab = document.getElementById('tab-' + sectionName);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+
+            // Update breadcrumb
+            const sectionTitles = {
+                'resources': 'ทรัพยากรทั้งหมด',
+                'book': 'สร้างการจอง',
+                'my-bookings': 'การจองของฉัน',
+                'calendar': 'ปฏิทินการจอง'
+            };
+            document.getElementById('breadcrumb').textContent = sectionTitles[sectionName] || 'Booking System';
+
+            // Close sidebar on mobile
+            if (window.innerWidth <= 1024) {
+                toggleSidebar();
+            }
+        }
+
+        // Load resources
+        async function loadResources() {
+            try {
+                const response = await fetch('/api/resources');
+                const data = await response.json();
+                resources = data.resources || [];
+                renderResources(resources);
+                populateResourceSelect();
+            } catch (error) {
+                console.error('Error loading resources:', error);
+                document.getElementById('resourcesGrid').innerHTML = `
+                    <div style="text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>ไม่สามารถโหลดทรัพยากรได้</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderResources(resourceList) {
+            const grid = document.getElementById('resourcesGrid');
+            
+            if (resourceList.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>ไม่พบทรัพยากร</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = resourceList.map(resource => {
+                const categoryIcons = {
+                    'transportation': 'fas fa-car',
+                    'meeting_rooms': 'fas fa-users',
+                    'it_equipment': 'fas fa-laptop',
+                    'tools': 'fas fa-tools',
+                    'facilities': 'fas fa-building'
+                };
+
+                const statusClasses = {
+                    'available': 'status-available',
+                    'booked': 'status-booked',
+                    'maintenance': 'status-maintenance',
+                    'out_of_order': 'status-maintenance'
+                };
+
+                const statusTexts = {
+                    'available': 'ว่าง',
+                    'booked': 'จองแล้ว',
+                    'maintenance': 'ซ่อมบำรุง',
+                    'out_of_order': 'เสีย'
+                };
+
+                return `
+                    <div class="resource-card" data-category="${resource.category}">
+                        <div class="resource-header">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="${categoryIcons[resource.category] || 'fas fa-cube'}" style="color: #4a90e2;"></i>
+                                <h3 class="resource-title">${resource.name}</h3>
+                            </div>
+                            <span class="resource-status ${statusClasses[resource.status] || 'status-available'}">
+                                ${statusTexts[resource.status] || 'ว่าง'}
+                            </span>
+                        </div>
+                        
+                        <p class="resource-info">${resource.description || 'ไม่มีรายละเอียด'}</p>
+                        
+                        <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 1rem;">
+                            ${resource.capacity ? `👥 ${resource.capacity} คน` : ''}
+                            ${resource.location ? `📍 ${resource.location}` : ''}
+                        </div>
+                        
+                        ${resource.specifications ? `
+                            <div class="resource-specs">
+                                ${Object.entries(resource.specifications).map(([key, value]) => 
+                                    `<span class="spec-tag">${key}: ${value}</span>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="resource-actions">
+                            <button class="btn btn-primary" onclick="quickBook('${resource.id}')" 
+                                ${resource.status !== 'available' ? 'disabled' : ''}>
+                                <i class="fas fa-calendar-plus"></i>
+                                จองเลย
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewResourceDetails('${resource.id}')">
+                                <i class="fas fa-info-circle"></i>
+                                ดูรายละเอียด
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateResourceSelect() {
+            const select = document.getElementById('resourceSelect');
+            select.innerHTML = '<option value="">กรุณาเลือกทรัพยากร</option>';
+            
+            resources.filter(r => r.status === 'available').forEach(resource => {
+                const option = document.createElement('option');
+                option.value = resource.id;
+                option.textContent = `${resource.name} - ${resource.location || ''}`;
+                select.appendChild(option);
+            });
+        }
+
+        function filterResources(category) {
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filter resources
+            const filteredResources = category === 'all' 
+                ? resources 
+                : resources.filter(r => r.category === category);
+            
+            renderResources(filteredResources);
+        }
+
+        function quickBook(resourceId) {
+            showSection('book');
+            document.getElementById('resourceSelect').value = resourceId;
+        }
+
+        function viewResourceDetails(resourceId) {
+            const resource = resources.find(r => r.id === resourceId);
+            if (resource) {
+                alert(`รายละเอียดทรัพยากร:\n\nชื่อ: ${resource.name}\nประเภท: ${resource.category}\nสถานะ: ${resource.status}\nที่ตั้ง: ${resource.location || 'ไม่ระบุ'}\nรายละเอียด: ${resource.description || 'ไม่มีรายละเอียด'}`);
+            }
+        }
+
+        // Load my bookings
+        async function loadMyBookings() {
+            try {
+                const response = await fetch('/api/bookings');
+                const data = await response.json();
+                bookings = data.bookings || [];
+                renderMyBookings(bookings);
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                document.getElementById('myBookingsGrid').innerHTML = `
+                    <div style="text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>ไม่สามารถโหลดการจองได้</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderMyBookings(bookingList) {
+            const container = document.getElementById('myBookingsGrid');
+            
+            if (bookingList.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;">
+                        <i class="fas fa-calendar" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>ไม่มีการจองในขณะนี้</p>
+                        <button class="btn btn-primary" onclick="showSection('book')" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> สร้างการจองใหม่
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="resources-grid">
+                    ${bookingList.map(booking => {
+                        const statusColors = {
+                            'pending': '#ff9500',
+                            'approved': '#4cd964',
+                            'rejected': '#ff3b30',
+                            'confirmed': '#007aff',
+                            'in_use': '#00d084',
+                            'completed': '#8e8e93',
+                            'cancelled': '#ff3b30'
+                        };
+
+                        const statusTexts = {
+                            'pending': 'รออนุมัติ',
+                            'approved': 'อนุมัติแล้ว',
+                            'rejected': 'ปฏิเสธ',
+                            'confirmed': 'ยืนยันแล้ว',
+                            'in_use': 'กำลังใช้งาน',
+                            'completed': 'เสร็จสิ้น',
+                            'cancelled': 'ยกเลิก'
+                        };
+
+                        const startDate = new Date(booking.start_time).toLocaleDateString('th-TH', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        const endDate = new Date(booking.end_time).toLocaleDateString('th-TH', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+
+                        return `
+                            <div class="resource-card">
+                                <div class="resource-header">
+                                    <h3 class="resource-title">${booking.title}</h3>
+                                    <span class="resource-status" style="background: ${statusColors[booking.status]}20; color: ${statusColors[booking.status]}; border-color: ${statusColors[booking.status]}30;">
+                                        ${statusTexts[booking.status]}
+                                    </span>
+                                </div>
+                                
+                                <div class="resource-info" style="margin-bottom: 1rem;">
+                                    <p><strong>ทรัพยากร:</strong> ${booking.resource?.name || 'ไม่ระบุ'}</p>
+                                    <p><strong>วันที่:</strong> ${startDate}</p>
+                                    <p><strong>ถึง:</strong> ${endDate}</p>
+                                    ${booking.purpose ? `<p><strong>วัตถุประสงค์:</strong> ${booking.purpose}</p>` : ''}
+                                    ${booking.attendees ? `<p><strong>จำนวนคน:</strong> ${booking.attendees}</p>` : ''}
+                                </div>
+                                
+                                <div class="resource-actions">
+                                    <button class="btn btn-secondary" onclick="viewBookingDetails('${booking.id}')">
+                                        <i class="fas fa-eye"></i>
+                                        ดูรายละเอียด
+                                    </button>
+                                    ${booking.status === 'pending' || booking.status === 'approved' ? `
+                                        <button class="btn btn-secondary" onclick="cancelBooking('${booking.id}')" style="background: rgba(255,59,48,0.2); color: #ff3b30;">
+                                            <i class="fas fa-times"></i>
+                                            ยกเลิก
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function viewBookingDetails(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                const startDate = new Date(booking.start_time).toLocaleString('th-TH');
+                const endDate = new Date(booking.end_time).toLocaleString('th-TH');
+                
+                alert(`รายละเอียดการจอง:\n\nหัวข้อ: ${booking.title}\nทรัพยากร: ${booking.resource?.name || 'ไม่ระบุ'}\nเริ่มต้น: ${startDate}\nสิ้นสุด: ${endDate}\nสถานะ: ${booking.status}\nวัตถุประสงค์: ${booking.purpose || 'ไม่ระบุ'}\nรายละเอียด: ${booking.description || 'ไม่มีรายละเอียด'}`);
+            }
+        }
+
+        async function cancelBooking(bookingId) {
+            if (confirm('คุณต้องการยกเลิกการจองนี้หรือไม่?')) {
+                try {
+                    const response = await fetch(`/api/bookings/${bookingId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert('ยกเลิกการจองเรียบร้อยแล้ว');
+                        loadMyBookings(); // Reload bookings
+                    } else {
+                        alert('ไม่สามารถยกเลิกการจองได้');
+                    }
+                } catch (error) {
+                    console.error('Error cancelling booking:', error);
+                    alert('เกิดข้อผิดพลาด');
+                }
+            }
+        }
+
+        // Booking form
+        function initializeDateInputs() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(9, 0, 0, 0);
+            
+            const tomorrowEnd = new Date(tomorrow);
+            tomorrowEnd.setHours(10, 0, 0, 0);
+            
+            document.getElementById('startDate').value = tomorrow.toISOString().slice(0, 16);
+            document.getElementById('endDate').value = tomorrowEnd.toISOString().slice(0, 16);
+        }
+
+        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                resource_id: document.getElementById('resourceSelect').value,
+                title: document.getElementById('bookingTitle').value,
+                description: document.getElementById('description').value,
+                start_time: document.getElementById('startDate').value,
+                end_time: document.getElementById('endDate').value,
+                purpose: document.getElementById('purpose').value,
+                attendees: parseInt(document.getElementById('attendees').value) || 1,
+                contact_info: document.getElementById('contactInfo').value,
+                special_requirements: document.getElementById('specialRequirements').value
+            };
+            
+            try {
+                const response = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('สร้างการจองเรียบร้อยแล้ว!');
+                    document.getElementById('bookingForm').reset();
+                    initializeDateInputs();
+                    loadMyBookings(); // Reload bookings
+                    showSection('my-bookings');
+                } else {
+                    alert(result.detail || 'ไม่สามารถสร้างการจองได้');
+                }
+            } catch (error) {
+                console.error('Error creating booking:', error);
+                alert('เกิดข้อผิดพลาดในการสร้างการจอง');
+            }
+        });
+
+        // Calendar functionality
+        function updateCalendar() {
+            const monthNames = [
+                'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+            ];
+            
+            document.getElementById('calendarTitle').textContent = 
+                `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear() + 543}`;
+            
+            // For now, show a simple message
+            document.getElementById('calendarGrid').innerHTML = `
+                <div style="text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;">
+                    <i class="fas fa-calendar-alt" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>ฟีเจอร์ปฏิทินจะพัฒนาในเร็วๆ นี้</p>
+                </div>
+            `;
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            updateCalendar();
+        }
+
+        // Hash navigation
+        function handleHashNavigation() {
+            const hash = window.location.hash.substring(1);
+            if (hash && hash !== '') {
+                if (['resources', 'book', 'my-bookings', 'calendar'].includes(hash)) {
+                    showSection(hash);
+                }
+            }
+        }
+
+        window.addEventListener('hashchange', handleHashNavigation);
+        window.addEventListener('load', handleHashNavigation);
+    </script>
+</body>
+</html>
