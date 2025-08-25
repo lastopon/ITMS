@@ -71,6 +71,12 @@ class Permission(str, Enum):
     UPDATE_ASSET = "update_asset"
     DELETE_ASSET = "delete_asset"
     
+    # Inventory Management
+    CREATE_INVENTORY = "create_inventory"
+    READ_INVENTORY = "read_inventory"
+    UPDATE_INVENTORY = "update_inventory"
+    DELETE_INVENTORY = "delete_inventory"
+    
     # Ticket Management
     CREATE_TICKET = "create_ticket"
     READ_TICKET = "read_ticket"
@@ -145,6 +151,105 @@ class BookingStatus(str, Enum):
     IN_USE = "in_use"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+
+# Asset Management Models
+class AssetCategory(str, Enum):
+    HARDWARE = "hardware"
+    SOFTWARE = "software"
+    PHYSICAL = "physical"
+    NETWORK = "network"
+    MOBILE = "mobile"
+    FURNITURE = "furniture"
+
+class AssetType(str, Enum):
+    # Hardware
+    DESKTOP = "desktop"
+    LAPTOP = "laptop"
+    SERVER = "server"
+    MONITOR = "monitor"
+    PRINTER = "printer"
+    SCANNER = "scanner"
+    
+    # Network
+    ROUTER = "router"
+    SWITCH = "switch"
+    FIREWALL = "firewall"
+    ACCESS_POINT = "access_point"
+    
+    # Mobile
+    SMARTPHONE = "smartphone"
+    TABLET = "tablet"
+    
+    # Software
+    OPERATING_SYSTEM = "operating_system"
+    APPLICATION = "application"
+    LICENSE = "license"
+    SUBSCRIPTION = "subscription"
+    
+    # Physical
+    DESK = "desk"
+    CHAIR = "chair"
+    CABINET = "cabinet"
+    OTHER = "other"
+
+class AssetStatus(str, Enum):
+    PROCUREMENT = "procurement"
+    RECEIVED = "received"
+    DEPLOYED = "deployed"
+    ACTIVE = "active"
+    MAINTENANCE = "maintenance"
+    RETIRED = "retired"
+    DISPOSED = "disposed"
+    LOST = "lost"
+
+class AssetCondition(str, Enum):
+    EXCELLENT = "excellent"
+    GOOD = "good"
+    FAIR = "fair"
+    POOR = "poor"
+    DAMAGED = "damaged"
+
+class MaintenanceType(str, Enum):
+    PREVENTIVE = "preventive"
+    CORRECTIVE = "corrective"
+    EMERGENCY = "emergency"
+    INSPECTION = "inspection"
+
+# Asset Models
+class AssetCreate(BaseModel):
+    name: str
+    category: AssetCategory
+    type: AssetType
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    purchase_date: Optional[str] = None
+    purchase_cost: Optional[float] = None
+    warranty_expiry: Optional[str] = None
+    location: Optional[str] = None
+    assigned_to: Optional[str] = None
+    description: Optional[str] = None
+    specifications: Optional[Dict[str, Any]] = {}
+
+class AssetUpdate(BaseModel):
+    name: Optional[str] = None
+    status: Optional[AssetStatus] = None
+    condition: Optional[AssetCondition] = None
+    location: Optional[str] = None
+    assigned_to: Optional[str] = None
+    description: Optional[str] = None
+    specifications: Optional[Dict[str, Any]] = None
+
+class MaintenanceRecord(BaseModel):
+    asset_id: str
+    maintenance_type: MaintenanceType
+    description: str
+    cost: Optional[float] = None
+    performed_by: str
+    scheduled_date: Optional[str] = None
+    completed_date: Optional[str] = None
+    next_maintenance: Optional[str] = None
+    notes: Optional[str] = None
 
 class ResourceStatus(str, Enum):
     AVAILABLE = "available"
@@ -301,6 +406,7 @@ ROLE_PERMISSIONS = {
         Permission.MANAGE_ROLES, Permission.ASSIGN_ROLES,
         Permission.SYSTEM_SETTINGS, Permission.VIEW_AUDIT_LOGS, Permission.BACKUP_SYSTEM,
         Permission.CREATE_ASSET, Permission.READ_ASSET, Permission.UPDATE_ASSET, Permission.DELETE_ASSET,
+        Permission.CREATE_INVENTORY, Permission.READ_INVENTORY, Permission.UPDATE_INVENTORY, Permission.DELETE_INVENTORY,
         Permission.CREATE_TICKET, Permission.READ_TICKET, Permission.UPDATE_TICKET, Permission.DELETE_TICKET, Permission.ASSIGN_TICKET,
         Permission.VIEW_REPORTS, Permission.EXPORT_DATA,
         Permission.CREATE_BOOKING, Permission.READ_BOOKING, Permission.UPDATE_BOOKING, Permission.DELETE_BOOKING,
@@ -311,6 +417,7 @@ ROLE_PERMISSIONS = {
         Permission.MANAGE_ROLES, Permission.ASSIGN_ROLES,
         Permission.SYSTEM_SETTINGS, Permission.VIEW_AUDIT_LOGS, Permission.BACKUP_SYSTEM,
         Permission.CREATE_ASSET, Permission.READ_ASSET, Permission.UPDATE_ASSET, Permission.DELETE_ASSET,
+        Permission.CREATE_INVENTORY, Permission.READ_INVENTORY, Permission.UPDATE_INVENTORY, Permission.DELETE_INVENTORY,
         Permission.CREATE_TICKET, Permission.READ_TICKET, Permission.UPDATE_TICKET, Permission.DELETE_TICKET, Permission.ASSIGN_TICKET,
         Permission.VIEW_REPORTS, Permission.EXPORT_DATA,
         Permission.CREATE_BOOKING, Permission.READ_BOOKING, Permission.UPDATE_BOOKING, Permission.DELETE_BOOKING,
@@ -319,6 +426,7 @@ ROLE_PERMISSIONS = {
     UserRole.MANAGER: [
         Permission.READ_USER, Permission.UPDATE_USER,
         Permission.READ_ASSET, Permission.UPDATE_ASSET,
+        Permission.READ_INVENTORY, Permission.UPDATE_INVENTORY,
         Permission.CREATE_TICKET, Permission.READ_TICKET, Permission.UPDATE_TICKET, Permission.ASSIGN_TICKET,
         Permission.VIEW_REPORTS, Permission.EXPORT_DATA,
         Permission.CREATE_BOOKING, Permission.READ_BOOKING, Permission.UPDATE_BOOKING, Permission.APPROVE_BOOKING
@@ -326,12 +434,14 @@ ROLE_PERMISSIONS = {
     UserRole.TECHNICIAN: [
         Permission.READ_USER,
         Permission.CREATE_ASSET, Permission.READ_ASSET, Permission.UPDATE_ASSET,
+        Permission.CREATE_INVENTORY, Permission.READ_INVENTORY, Permission.UPDATE_INVENTORY,
         Permission.CREATE_TICKET, Permission.READ_TICKET, Permission.UPDATE_TICKET,
         Permission.VIEW_REPORTS,
         Permission.CREATE_BOOKING, Permission.READ_BOOKING, Permission.UPDATE_BOOKING
     ],
     UserRole.USER: [
         Permission.READ_ASSET,
+        Permission.READ_INVENTORY,
         Permission.CREATE_TICKET, Permission.READ_TICKET,
         Permission.CREATE_BOOKING, Permission.READ_BOOKING
     ]
@@ -880,24 +990,41 @@ async def get_system_stats():
 @app.get("/api/audit-logs")
 async def get_audit_logs(limit: int = 10):
     """Get audit logs"""
-    from datetime import datetime, timedelta
-    import random
+    # Return real audit logs from MOCK_AUDIT_LOGS
+    logs = MOCK_AUDIT_LOGS[:limit] if len(MOCK_AUDIT_LOGS) >= limit else MOCK_AUDIT_LOGS
     
-    actions = ["Login", "Logout", "Settings", "User Created", "User Updated", "Backup", "System Restart"]
-    users = ["admin", "john.doe", "jane.smith", "system"]
+    # If no real logs exist yet, add some sample data
+    if not MOCK_AUDIT_LOGS:
+        from datetime import timedelta
+        import random
+        
+        sample_actions = ["Login", "Logout", "Settings", "User Created", "User Updated", "Backup", "System Restart"]
+        sample_users = ["admin", "manager", "tech", "system"]
+        
+        for i in range(min(limit, 5)):
+            timestamp = datetime.now() - timedelta(minutes=random.randint(1, 1440))
+            log_activity(
+                random.choice(sample_users),
+                random.choice(sample_actions),
+                f"Sample activity generated for demonstration"
+            )
+        
+        logs = MOCK_AUDIT_LOGS[:limit]
     
-    logs = []
-    for i in range(limit):
-        timestamp = datetime.now() - timedelta(minutes=random.randint(1, 1440))
-        logs.append({
-            "timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "user": random.choice(users),
-            "action": random.choice(actions),
-            "details": f"Action performed successfully",
-            "ip_address": f"192.168.1.{random.randint(100, 200)}"
-        })
+    # Format timestamps for display
+    formatted_logs = []
+    for log in logs:
+        formatted_log = log.copy()
+        # Convert ISO format to readable format
+        if 'timestamp' in formatted_log:
+            try:
+                dt = datetime.fromisoformat(formatted_log['timestamp'].replace('Z', '+00:00'))
+                formatted_log['timestamp'] = dt.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                pass
+        formatted_logs.append(formatted_log)
     
-    return {"logs": logs}
+    return {"logs": formatted_logs}
 
 @app.post("/api/backup/create")
 async def create_backup():
@@ -1311,8 +1438,267 @@ def init_sample_notifications():
         "อุปกรณ์ IT มีจำนวนคงเหลือน้อย กรุณาตรวจสอบ"
     )
 
+# Mock Audit Logs Storage
+MOCK_AUDIT_LOGS = []
+
+def log_activity(username: str, action: str, description: str):
+    """Log user activity for audit trail"""
+    global MOCK_AUDIT_LOGS
+    
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "timestamp": datetime.now().isoformat(),
+        "user": username,
+        "action": action,
+        "description": description,
+        "ip_address": "127.0.0.1",  # Mock IP for development
+        "user_agent": "ITMS-System"  # Mock user agent
+    }
+    MOCK_AUDIT_LOGS.insert(0, log_entry)  # Insert at beginning for newest first
+    
+    # Keep only latest 1000 entries to prevent memory issues
+    if len(MOCK_AUDIT_LOGS) > 1000:
+        MOCK_AUDIT_LOGS = MOCK_AUDIT_LOGS[:1000]
+
+# Mock Assets Storage
+MOCK_ASSETS = {}
+MOCK_MAINTENANCE_RECORDS = {}
+
+# Initialize sample assets
+def init_sample_assets():
+    # Sample assets
+    sample_assets = [
+        {
+            "id": "asset-001",
+            "name": "MacBook Pro 16\"",
+            "category": AssetCategory.HARDWARE,
+            "type": AssetType.LAPTOP,
+            "brand": "Apple",
+            "model": "MacBook Pro 16-inch (2023)",
+            "serial_number": "C02DK0ABMD6T",
+            "asset_tag": "ITMS-LT-001",
+            "purchase_date": "2024-01-15",
+            "purchase_cost": 89900.00,
+            "warranty_expiry": "2027-01-15",
+            "status": AssetStatus.ACTIVE,
+            "condition": AssetCondition.EXCELLENT,
+            "location": "อาคาร A ชั้น 3 ห้อง 301",
+            "assigned_to": "สมชาย ใจดี",
+            "department": "IT Department",
+            "description": "แล็ปท็อปสำหรับการพัฒนาระบบ",
+            "specifications": {
+                "processor": "Apple M3 Pro",
+                "memory": "32GB",
+                "storage": "1TB SSD",
+                "display": "16.2-inch Liquid Retina XDR",
+                "os": "macOS Ventura"
+            },
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        },
+        {
+            "id": "asset-002", 
+            "name": "Dell OptiPlex 7090",
+            "category": AssetCategory.HARDWARE,
+            "type": AssetType.DESKTOP,
+            "brand": "Dell",
+            "model": "OptiPlex 7090 Ultra",
+            "serial_number": "BXK2Y03",
+            "asset_tag": "ITMS-DT-002",
+            "purchase_date": "2024-02-01",
+            "purchase_cost": 45000.00,
+            "warranty_expiry": "2027-02-01", 
+            "status": AssetStatus.ACTIVE,
+            "condition": AssetCondition.GOOD,
+            "location": "อาคาร B ชั้น 2 ห้อง 205",
+            "assigned_to": "วิไล สุขใจ",
+            "department": "Accounting Department",
+            "description": "คอมพิวเตอร์ตั้งโต๊ะสำหรับงานบัญชี",
+            "specifications": {
+                "processor": "Intel Core i7-11700T",
+                "memory": "16GB DDR4",
+                "storage": "512GB SSD",
+                "graphics": "Intel UHD Graphics 630",
+                "os": "Windows 11 Pro"
+            },
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        },
+        {
+            "id": "asset-003",
+            "name": "HP LaserJet Pro M404n",
+            "category": AssetCategory.HARDWARE,
+            "type": AssetType.PRINTER,
+            "brand": "HP",
+            "model": "LaserJet Pro M404n",
+            "serial_number": "VNC6J24567",
+            "asset_tag": "ITMS-PR-003",
+            "purchase_date": "2024-01-20",
+            "purchase_cost": 8500.00,
+            "warranty_expiry": "2026-01-20",
+            "status": AssetStatus.ACTIVE,
+            "condition": AssetCondition.GOOD,
+            "location": "อาคาร A ชั้น 2 Copy Center",
+            "assigned_to": "ทุกคนในอาคาร A",
+            "department": "Shared Resource",
+            "description": "เครื่องพิมพ์เลเซอร์สำหรับงานทั่วไป",
+            "specifications": {
+                "type": "Laser Printer",
+                "print_speed": "38 ppm",
+                "resolution": "1200 x 1200 dpi",
+                "connectivity": "USB, Ethernet",
+                "paper_capacity": "250 sheets"
+            },
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        },
+        {
+            "id": "asset-004",
+            "name": "Cisco Catalyst 2960X",
+            "category": AssetCategory.NETWORK,
+            "type": AssetType.SWITCH,
+            "brand": "Cisco",
+            "model": "Catalyst 2960X-24TS-L",
+            "serial_number": "FCW2213L0PZ",
+            "asset_tag": "ITMS-SW-004",
+            "purchase_date": "2023-12-01",
+            "purchase_cost": 25000.00,
+            "warranty_expiry": "2026-12-01",
+            "status": AssetStatus.ACTIVE,
+            "condition": AssetCondition.EXCELLENT,
+            "location": "อาคาร A Server Room",
+            "assigned_to": "ทีม Network Admin",
+            "department": "IT Department",
+            "description": "Switch หลักสำหรับ Network อาคาร A",
+            "specifications": {
+                "ports": "24 x 10/100/1000",
+                "uplink": "4 x 1G SFP",
+                "power": "370W PoE+",
+                "management": "Web GUI, CLI, SNMP",
+                "vlan": "4094 VLANs"
+            },
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        },
+        {
+            "id": "asset-005",
+            "name": "Microsoft Office 365 Business Premium",
+            "category": AssetCategory.SOFTWARE,
+            "type": AssetType.SUBSCRIPTION,
+            "brand": "Microsoft",
+            "model": "Office 365 Business Premium",
+            "serial_number": "N/A",
+            "asset_tag": "ITMS-SW-005",
+            "purchase_date": "2024-01-01",
+            "purchase_cost": 156000.00,  # 12 เดือน x 50 license x 260 บาท
+            "warranty_expiry": "2024-12-31",
+            "status": AssetStatus.ACTIVE,
+            "condition": AssetCondition.GOOD,
+            "location": "Cloud Service",
+            "assigned_to": "ทั้งองค์กร (50 licenses)",
+            "department": "All Departments",
+            "description": "ใบอนุญาตซอฟต์แวร์ Office 365 สำหรับพนักงาน",
+            "specifications": {
+                "licenses": "50 users",
+                "includes": "Word, Excel, PowerPoint, Outlook, Teams",
+                "storage": "1TB OneDrive per user",
+                "email": "50GB Exchange Online",
+                "subscription_type": "Annual"
+            },
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        },
+        {
+            "id": "asset-006",
+            "name": "โต๊ะทำงาน Ergonomic",
+            "category": AssetCategory.FURNITURE,
+            "type": AssetType.DESK,
+            "brand": "IKEA",
+            "model": "BEKANT",
+            "serial_number": "N/A",
+            "asset_tag": "ITMS-FU-006",
+            "purchase_date": "2024-01-10",
+            "purchase_cost": 4500.00,
+            "warranty_expiry": "2034-01-10",  # 10 ปี
+            "status": AssetStatus.ACTIVE,
+            "condition": AssetCondition.EXCELLENT,
+            "location": "อาคาร A ชั้น 3 ห้อง 301",
+            "assigned_to": "สมชาย ใจดี",
+            "department": "IT Department",
+            "description": "โต๊ะทำงานแบบปรับระดับได้",
+            "specifications": {
+                "dimensions": "160x80 cm",
+                "material": "Particleboard, Melamine foil",
+                "adjustable_height": "65-85 cm",
+                "color": "White",
+                "weight_capacity": "50 kg"
+            },
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+    ]
+    
+    # Store in mock database
+    for asset in sample_assets:
+        MOCK_ASSETS[asset["id"]] = asset
+
+# Initialize sample maintenance records
+def init_sample_maintenance():
+    sample_maintenance = [
+        {
+            "id": "maint-001",
+            "asset_id": "asset-002",
+            "maintenance_type": MaintenanceType.PREVENTIVE,
+            "description": "ทำความสะอาดระบบ อัปเดต OS และซอฟต์แวร์",
+            "cost": 500.00,
+            "performed_by": "ทีม IT Support",
+            "scheduled_date": "2024-06-15",
+            "completed_date": "2024-06-15",
+            "next_maintenance": "2024-12-15",
+            "status": "completed",
+            "notes": "ระบบทำงานปกติดี พบการอัปเดตที่จำเป็น 5 รายการ",
+            "created_at": datetime.now().isoformat()
+        },
+        {
+            "id": "maint-002",
+            "asset_id": "asset-003",
+            "maintenance_type": MaintenanceType.CORRECTIVE,
+            "description": "เปลี่ยน Toner Cartridge และทำความสะอาดเครื่องพิมพ์",
+            "cost": 2500.00,
+            "performed_by": "บริษัทบำรุงรักษาภายนอก",
+            "scheduled_date": "2024-07-20",
+            "completed_date": "2024-07-20",
+            "next_maintenance": "2024-10-20",
+            "status": "completed", 
+            "notes": "เปลี่ยน Toner แล้ว คุณภาพการพิมพ์กลับมาปกติ",
+            "created_at": datetime.now().isoformat()
+        },
+        {
+            "id": "maint-003",
+            "asset_id": "asset-004",
+            "maintenance_type": MaintenanceType.INSPECTION,
+            "description": "ตรวจสอบสถานะ Network Switch และ Firmware Update",
+            "cost": 0.00,
+            "performed_by": "Admin Network",
+            "scheduled_date": "2024-08-01",
+            "completed_date": None,
+            "next_maintenance": "2024-11-01",
+            "status": "scheduled",
+            "notes": "กำหนดการตรวจสอบรายไตรมาส",
+            "created_at": datetime.now().isoformat()
+        }
+    ]
+    
+    # Store in mock database
+    for maintenance in sample_maintenance:
+        MOCK_MAINTENANCE_RECORDS[maintenance["id"]] = maintenance
+
 # Initialize notifications
 init_sample_notifications()
+
+# Initialize assets and maintenance
+init_sample_assets()
+init_sample_maintenance()
 
 @app.get("/api/notifications")
 async def get_notifications(user_id: Optional[str] = None, unread_only: bool = False):
@@ -1886,6 +2272,1342 @@ async def send_notification_email(user_email: str, notification_type: str, data:
             await email_service.send_template_email(user_email, notification_type, data)
     except Exception as e:
         print(f"Failed to send notification email: {str(e)}")
+
+# ============================================================================
+# ASSET MANAGEMENT API ENDPOINTS
+# ============================================================================
+
+@app.get("/api/assets")
+async def get_assets(
+    category: Optional[AssetCategory] = None,
+    status: Optional[AssetStatus] = None,
+    location: Optional[str] = None,
+    assigned_to: Optional[str] = None,
+    page: int = 1,
+    limit: int = 20,
+    token: str = ""
+):
+    """Get assets with filtering and pagination"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.READ_ASSET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Filter assets
+    filtered_assets = []
+    for asset_id, asset in MOCK_ASSETS.items():
+        if category and asset["category"] != category:
+            continue
+        if status and asset["status"] != status:
+            continue
+        if location and location.lower() not in asset["location"].lower():
+            continue
+        if assigned_to and assigned_to.lower() not in asset["assigned_to"].lower():
+            continue
+        
+        filtered_assets.append(asset)
+    
+    # Pagination
+    total = len(filtered_assets)
+    start = (page - 1) * limit
+    end = start + limit
+    assets = filtered_assets[start:end]
+    
+    # Calculate summary statistics
+    stats = {
+        "total_assets": len(MOCK_ASSETS),
+        "filtered_count": total,
+        "active_assets": len([a for a in MOCK_ASSETS.values() if a["status"] == AssetStatus.ACTIVE]),
+        "maintenance_assets": len([a for a in MOCK_ASSETS.values() if a["status"] == AssetStatus.MAINTENANCE]),
+        "total_value": sum(a.get("purchase_cost", 0) for a in MOCK_ASSETS.values()),
+        "categories": {
+            "hardware": len([a for a in MOCK_ASSETS.values() if a["category"] == AssetCategory.HARDWARE]),
+            "software": len([a for a in MOCK_ASSETS.values() if a["category"] == AssetCategory.SOFTWARE]),
+            "network": len([a for a in MOCK_ASSETS.values() if a["category"] == AssetCategory.NETWORK]),
+            "furniture": len([a for a in MOCK_ASSETS.values() if a["category"] == AssetCategory.FURNITURE])
+        }
+    }
+    
+    return {
+        "assets": assets,
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "pages": (total + limit - 1) // limit
+        },
+        "statistics": stats
+    }
+
+@app.get("/api/assets/{asset_id}")
+async def get_asset(asset_id: str, token: str):
+    """Get specific asset details"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.READ_ASSET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if asset_id not in MOCK_ASSETS:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    asset = MOCK_ASSETS[asset_id]
+    
+    # Get maintenance history for this asset
+    maintenance_history = [
+        maintenance for maintenance in MOCK_MAINTENANCE_RECORDS.values()
+        if maintenance["asset_id"] == asset_id
+    ]
+    
+    # Calculate depreciation (simple straight-line method)
+    if asset.get("purchase_cost") and asset.get("purchase_date"):
+        from datetime import datetime
+        purchase_date = datetime.fromisoformat(asset["purchase_date"])
+        current_date = datetime.now()
+        years_owned = (current_date - purchase_date).days / 365.25
+        
+        # Assume 5-year depreciation for hardware, 3-year for software
+        depreciation_years = 5 if asset["category"] in [AssetCategory.HARDWARE, AssetCategory.NETWORK] else 3
+        annual_depreciation = asset["purchase_cost"] / depreciation_years
+        accumulated_depreciation = min(annual_depreciation * years_owned, asset["purchase_cost"])
+        current_value = max(asset["purchase_cost"] - accumulated_depreciation, 0)
+        
+        depreciation_info = {
+            "purchase_cost": asset["purchase_cost"],
+            "current_value": round(current_value, 2),
+            "accumulated_depreciation": round(accumulated_depreciation, 2),
+            "depreciation_rate": f"{(accumulated_depreciation / asset['purchase_cost'] * 100):.1f}%",
+            "years_owned": round(years_owned, 2)
+        }
+    else:
+        depreciation_info = None
+    
+    return {
+        "asset": asset,
+        "maintenance_history": maintenance_history,
+        "depreciation": depreciation_info
+    }
+
+@app.post("/api/assets")
+async def create_asset(asset_data: AssetCreate, token: str):
+    """Create new asset"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.CREATE_ASSET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Generate asset ID and tag
+    asset_id = f"asset-{str(uuid.uuid4())[:8]}"
+    asset_tag_prefix = {
+        AssetType.LAPTOP: "LT",
+        AssetType.DESKTOP: "DT", 
+        AssetType.SERVER: "SV",
+        AssetType.PRINTER: "PR",
+        AssetType.SCANNER: "SC",
+        AssetType.ROUTER: "RT",
+        AssetType.SWITCH: "SW",
+        AssetType.FIREWALL: "FW",
+        AssetType.SMARTPHONE: "PH",
+        AssetType.TABLET: "TB"
+    }.get(asset_data.type, "AS")
+    
+    asset_tag = f"ITMS-{asset_tag_prefix}-{len(MOCK_ASSETS) + 1:03d}"
+    
+    # Create asset record
+    new_asset = {
+        "id": asset_id,
+        "asset_tag": asset_tag,
+        "name": asset_data.name,
+        "category": asset_data.category,
+        "type": asset_data.type,
+        "brand": asset_data.brand,
+        "model": asset_data.model,
+        "serial_number": asset_data.serial_number,
+        "purchase_date": asset_data.purchase_date,
+        "purchase_cost": asset_data.purchase_cost,
+        "warranty_expiry": asset_data.warranty_expiry,
+        "status": AssetStatus.RECEIVED,  # Default status for new assets
+        "condition": AssetCondition.EXCELLENT,  # Default condition
+        "location": asset_data.location,
+        "assigned_to": asset_data.assigned_to,
+        "description": asset_data.description,
+        "specifications": asset_data.specifications or {},
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+        "created_by": current_user["username"]
+    }
+    
+    # Store in mock database
+    MOCK_ASSETS[asset_id] = new_asset
+    
+    # Log activity
+    log_activity(current_user["username"], "Asset Created", f"Created asset: {asset_data.name} ({asset_tag})")
+    
+    return {"message": "Asset created successfully", "asset": new_asset}
+
+@app.put("/api/assets/{asset_id}")
+async def update_asset(asset_id: str, asset_data: AssetUpdate, token: str):
+    """Update asset information"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.UPDATE_ASSET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if asset_id not in MOCK_ASSETS:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    asset = MOCK_ASSETS[asset_id]
+    
+    # Update only provided fields
+    update_data = asset_data.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        asset[field] = value
+    
+    asset["updated_at"] = datetime.now().isoformat()
+    asset["updated_by"] = current_user["username"]
+    
+    # Log activity
+    log_activity(current_user["username"], "Asset Updated", f"Updated asset: {asset['name']} ({asset.get('asset_tag', asset_id)})")
+    
+    return {"message": "Asset updated successfully", "asset": asset}
+
+@app.delete("/api/assets/{asset_id}")
+async def delete_asset(asset_id: str, token: str):
+    """Delete asset (soft delete - mark as disposed)"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.DELETE_ASSET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if asset_id not in MOCK_ASSETS:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    asset = MOCK_ASSETS[asset_id]
+    asset["status"] = AssetStatus.DISPOSED
+    asset["updated_at"] = datetime.now().isoformat()
+    asset["disposed_by"] = current_user["username"]
+    
+    # Log activity
+    log_activity(current_user["username"], "Asset Disposed", f"Disposed asset: {asset['name']} ({asset.get('asset_tag', asset_id)})")
+    
+    return {"message": "Asset disposed successfully"}
+
+# ============================================================================
+# MAINTENANCE MANAGEMENT API ENDPOINTS  
+# ============================================================================
+
+@app.get("/api/assets/{asset_id}/maintenance")
+async def get_asset_maintenance(asset_id: str, token: str):
+    """Get maintenance history for specific asset"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.READ_ASSET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if asset_id not in MOCK_ASSETS:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    maintenance_records = [
+        maintenance for maintenance in MOCK_MAINTENANCE_RECORDS.values()
+        if maintenance["asset_id"] == asset_id
+    ]
+    
+    # Sort by created date (newest first)
+    maintenance_records.sort(key=lambda x: x["created_at"], reverse=True)
+    
+    return {"asset_id": asset_id, "maintenance_records": maintenance_records}
+
+@app.post("/api/assets/{asset_id}/maintenance")
+async def create_maintenance_record(asset_id: str, maintenance_data: MaintenanceRecord, token: str):
+    """Create maintenance record for asset"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.UPDATE_ASSET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if asset_id not in MOCK_ASSETS:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    # Generate maintenance record ID
+    maintenance_id = f"maint-{str(uuid.uuid4())[:8]}"
+    
+    new_maintenance = {
+        "id": maintenance_id,
+        "asset_id": asset_id,
+        "maintenance_type": maintenance_data.maintenance_type,
+        "description": maintenance_data.description,
+        "cost": maintenance_data.cost,
+        "performed_by": maintenance_data.performed_by,
+        "scheduled_date": maintenance_data.scheduled_date,
+        "completed_date": maintenance_data.completed_date,
+        "next_maintenance": maintenance_data.next_maintenance,
+        "status": "completed" if maintenance_data.completed_date else "scheduled",
+        "notes": maintenance_data.notes,
+        "created_at": datetime.now().isoformat(),
+        "created_by": current_user["username"]
+    }
+    
+    # Store in mock database
+    MOCK_MAINTENANCE_RECORDS[maintenance_id] = new_maintenance
+    
+    # Update asset status if maintenance is in progress
+    if not maintenance_data.completed_date:
+        asset = MOCK_ASSETS[asset_id]
+        asset["status"] = AssetStatus.MAINTENANCE
+        asset["updated_at"] = datetime.now().isoformat()
+    
+    # Log activity
+    log_activity(current_user["username"], "Maintenance Scheduled", f"Scheduled maintenance for asset: {MOCK_ASSETS[asset_id]['name']}")
+    
+    return {"message": "Maintenance record created successfully", "maintenance": new_maintenance}
+
+@app.get("/api/maintenance")
+async def get_all_maintenance(
+    status: Optional[str] = None,
+    maintenance_type: Optional[MaintenanceType] = None,
+    token: str = ""
+):
+    """Get all maintenance records with filtering"""
+    current_user = get_current_user_from_token(token)
+    if not current_user or not check_permission(current_user, Permission.READ_MAINTENANCE):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Filter maintenance records
+    filtered_maintenance = []
+    for maintenance in MOCK_MAINTENANCE_RECORDS.values():
+        if status and maintenance.get("status") != status:
+            continue
+        if maintenance_type and maintenance.get("maintenance_type") != maintenance_type:
+            continue
+        
+        # Add asset information
+        asset = MOCK_ASSETS.get(maintenance["asset_id"], {})
+        maintenance_with_asset = {
+            **maintenance,
+            "asset_name": asset.get("name", "Unknown Asset"),
+            "asset_tag": asset.get("asset_tag", "N/A"),
+            "asset_location": asset.get("location", "Unknown")
+        }
+        filtered_maintenance.append(maintenance_with_asset)
+    
+    # Sort by scheduled date
+    filtered_maintenance.sort(key=lambda x: x.get("scheduled_date", ""), reverse=True)
+    
+    return {"maintenance_records": filtered_maintenance}
+
+# ============================================================================
+# ASSET REPORTS AND ANALYTICS
+# ============================================================================
+
+@app.get("/api/assets/reports/summary")
+async def get_asset_summary_report(token: str):
+    """Get asset summary report and analytics"""
+    current_user = get_current_user_from_token(token)
+    if not current_user or not check_permission(current_user, Permission.READ_REPORTS):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Calculate various statistics
+    total_assets = len(MOCK_ASSETS)
+    total_value = sum(a.get("purchase_cost", 0) for a in MOCK_ASSETS.values())
+    
+    # Status distribution
+    status_distribution = {}
+    for status in AssetStatus:
+        count = len([a for a in MOCK_ASSETS.values() if a["status"] == status])
+        status_distribution[status.value] = count
+    
+    # Category distribution
+    category_distribution = {}
+    category_values = {}
+    for category in AssetCategory:
+        assets_in_category = [a for a in MOCK_ASSETS.values() if a["category"] == category]
+        category_distribution[category.value] = len(assets_in_category)
+        category_values[category.value] = sum(a.get("purchase_cost", 0) for a in assets_in_category)
+    
+    # Top assets by value
+    sorted_assets = sorted(MOCK_ASSETS.values(), key=lambda x: x.get("purchase_cost", 0), reverse=True)
+    top_assets = sorted_assets[:10]
+    
+    # Maintenance statistics
+    total_maintenance = len(MOCK_MAINTENANCE_RECORDS)
+    maintenance_cost = sum(m.get("cost", 0) for m in MOCK_MAINTENANCE_RECORDS.values())
+    
+    # Assets needing maintenance (mock logic - assets with no maintenance in 6 months)
+    assets_needing_maintenance = []
+    for asset in MOCK_ASSETS.values():
+        asset_maintenance = [m for m in MOCK_MAINTENANCE_RECORDS.values() if m["asset_id"] == asset["id"]]
+        if not asset_maintenance:
+            assets_needing_maintenance.append({
+                "id": asset["id"],
+                "name": asset["name"],
+                "asset_tag": asset.get("asset_tag", "N/A"),
+                "last_maintenance": "Never",
+                "status": asset["status"]
+            })
+    
+    # Warranty expiring soon (within 90 days)
+    from datetime import datetime, timedelta
+    warranty_expiring = []
+    cutoff_date = datetime.now() + timedelta(days=90)
+    
+    for asset in MOCK_ASSETS.values():
+        if asset.get("warranty_expiry"):
+            try:
+                expiry_date = datetime.fromisoformat(asset["warranty_expiry"])
+                if expiry_date <= cutoff_date and expiry_date >= datetime.now():
+                    warranty_expiring.append({
+                        "id": asset["id"],
+                        "name": asset["name"],
+                        "asset_tag": asset.get("asset_tag", "N/A"),
+                        "warranty_expiry": asset["warranty_expiry"],
+                        "days_remaining": (expiry_date - datetime.now()).days
+                    })
+            except:
+                pass
+    
+    return {
+        "summary": {
+            "total_assets": total_assets,
+            "total_value": total_value,
+            "active_assets": status_distribution.get("active", 0),
+            "maintenance_assets": status_distribution.get("maintenance", 0),
+            "total_maintenance_records": total_maintenance,
+            "total_maintenance_cost": maintenance_cost
+        },
+        "distributions": {
+            "by_status": status_distribution,
+            "by_category": category_distribution,
+            "value_by_category": category_values
+        },
+        "top_assets": top_assets[:5],  # Top 5 most valuable
+        "alerts": {
+            "assets_needing_maintenance": assets_needing_maintenance[:10],
+            "warranty_expiring": warranty_expiring
+        }
+    }
+
+# Database connection test
+@app.get("/database/test")
+async def test_database_connection():
+    """Test database connection"""
+    try:
+        # In production, this would test actual database connection
+        # For now, return mock successful connection
+        return {
+            "status": "connected",
+            "database_info": {
+                "type": "PostgreSQL",
+                "version": "15",
+                "host": "db",
+                "database": "itms_db"
+            },
+            "tables": ["users", "bookings", "resources", "notifications", "audit_logs"],
+            "connection_time": "12ms",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+
+# ============================================================================
+# TICKET SYSTEM
+# ============================================================================
+
+# Ticket Models and Enums
+class TicketPriority(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    URGENT = "urgent"
+    CRITICAL = "critical"
+
+class TicketStatus(str, Enum):
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    PENDING = "pending"
+    RESOLVED = "resolved"
+    CLOSED = "closed"
+    CANCELLED = "cancelled"
+
+class TicketCategory(str, Enum):
+    HARDWARE = "hardware"
+    SOFTWARE = "software"
+    NETWORK = "network"
+    SECURITY = "security"
+    ACCESS = "access"
+    EMAIL = "email"
+    PHONE = "phone"
+    PRINTER = "printer"
+    OTHER = "other"
+
+class TicketType(str, Enum):
+    INCIDENT = "incident"
+    REQUEST = "request"
+    PROBLEM = "problem"
+    CHANGE = "change"
+
+class TicketCreate(BaseModel):
+    title: str
+    description: str
+    category: TicketCategory
+    type: TicketType = TicketType.INCIDENT
+    priority: TicketPriority = TicketPriority.MEDIUM
+    requester_email: Optional[str] = None
+    department: Optional[str] = None
+    location: Optional[str] = None
+    due_date: Optional[str] = None
+
+class TicketUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[TicketStatus] = None
+    priority: Optional[TicketPriority] = None
+    assigned_to: Optional[str] = None
+    resolution: Optional[str] = None
+    category: Optional[TicketCategory] = None
+    due_date: Optional[str] = None
+
+class TicketComment(BaseModel):
+    ticket_id: str
+    comment: str
+    is_internal: bool = False
+
+# Mock Ticket Storage
+MOCK_TICKETS = {}
+MOCK_TICKET_COMMENTS = {}
+
+# Initialize sample tickets
+def init_sample_tickets():
+    """Initialize sample ticket data"""
+    global MOCK_TICKETS
+    
+    sample_tickets = [
+        {
+            "id": "ticket-001",
+            "title": "คอมพิวเตอร์ไม่สามารถเชื่อมต่ออินเทอร์เน็ทได้",
+            "description": "คอมพิวเตอร์ในห้อง 301 ไม่สามารถเชื่อมต่ออินเทอร์เน็ทได้ตั้งแต่เมื่อเช้า พนักงานไม่สามารถทำงานได้",
+            "category": TicketCategory.NETWORK,
+            "type": TicketType.INCIDENT,
+            "status": TicketStatus.OPEN,
+            "priority": TicketPriority.HIGH,
+            "requester": "สมชาย ใจดี",
+            "requester_email": "somchai@company.com",
+            "assigned_to": "IT Support Team",
+            "department": "IT Department",
+            "location": "อาคาร A ชั้น 3 ห้อง 301",
+            "created_at": datetime.now() - timedelta(hours=2),
+            "updated_at": datetime.now() - timedelta(hours=1),
+            "created_by": "somchai",
+            "due_date": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
+            "resolution": None
+        },
+        {
+            "id": "ticket-002", 
+            "title": "ขอติดตั้งซอฟต์แวร์ Adobe Photoshop",
+            "description": "ขอให้ติดตั้งซอฟต์แวร์ Adobe Photoshop สำหรับงานออกแบบกราฟิก",
+            "category": TicketCategory.SOFTWARE,
+            "type": TicketType.REQUEST,
+            "status": TicketStatus.IN_PROGRESS,
+            "priority": TicketPriority.MEDIUM,
+            "requester": "วิไล สุขใจ",
+            "requester_email": "wilai@company.com",
+            "assigned_to": "นาย ธนา เทคนิค",
+            "department": "Marketing Department", 
+            "location": "อาคาร B ชั้น 2 ห้อง 205",
+            "created_at": datetime.now() - timedelta(days=1),
+            "updated_at": datetime.now() - timedelta(hours=3),
+            "created_by": "wilai",
+            "due_date": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
+            "resolution": None
+        },
+        {
+            "id": "ticket-003",
+            "title": "เครื่องพิมพ์ไม่ทำงาน แสดงข้อความ Error",
+            "description": "เครื่องพิมพ์ HP LaserJet ที่ Copy Center แสดงข้อความ Error และไม่สามารถพิมพ์ได้",
+            "category": TicketCategory.PRINTER,
+            "type": TicketType.INCIDENT,
+            "status": TicketStatus.RESOLVED,
+            "priority": TicketPriority.MEDIUM,
+            "requester": "นางสาว มณี อาจหาญ",
+            "requester_email": "manee@company.com",
+            "assigned_to": "นาย ธนา เทคนิค",
+            "department": "Administration",
+            "location": "อาคาร A ชั้น 2 Copy Center",
+            "created_at": datetime.now() - timedelta(days=2),
+            "updated_at": datetime.now() - timedelta(hours=6),
+            "created_by": "manee",
+            "due_date": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
+            "resolution": "เปลี่ยนตลับหมึกใหม่และทำความสะอาดเครื่องพิมพ์ สามารถใช้งานได้ปกติ"
+        },
+        {
+            "id": "ticket-004",
+            "title": "ขอสิทธิ์เข้าใช้ระบบ ERP",
+            "description": "พนักงานใหม่ขอสิทธิ์เข้าใช้ระบบ ERP สำหรับงานบัญชี",
+            "category": TicketCategory.ACCESS,
+            "type": TicketType.REQUEST,
+            "status": TicketStatus.PENDING,
+            "priority": TicketPriority.MEDIUM,
+            "requester": "นาย ปรีชา บัญชี",
+            "requester_email": "preecha@company.com", 
+            "assigned_to": "System Admin",
+            "department": "Accounting Department",
+            "location": "อาคาร B ชั้น 1",
+            "created_at": datetime.now() - timedelta(hours=8),
+            "updated_at": datetime.now() - timedelta(hours=4),
+            "created_by": "preecha",
+            "due_date": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
+            "resolution": None
+        },
+        {
+            "id": "ticket-005",
+            "title": "อีเมลไม่สามารถส่งได้",
+            "description": "ไม่สามารถส่งอีเมลออกไปภายนอกได้ มีข้อความแจ้งเตือน SMTP Error",
+            "category": TicketCategory.EMAIL,
+            "type": TicketType.PROBLEM,
+            "status": TicketStatus.OPEN,
+            "priority": TicketPriority.HIGH,
+            "requester": "นางสาว ลิลลี่ เลขา",
+            "requester_email": "lilly@company.com",
+            "assigned_to": None,
+            "department": "Executive Office",
+            "location": "อาคาร A ชั้น 4",
+            "created_at": datetime.now() - timedelta(hours=1),
+            "updated_at": datetime.now() - timedelta(hours=1),
+            "created_by": "lilly", 
+            "due_date": (datetime.now() + timedelta(hours=12)).strftime("%Y-%m-%d"),
+            "resolution": None
+        }
+    ]
+    
+    for ticket in sample_tickets:
+        MOCK_TICKETS[ticket["id"]] = ticket
+
+# Initialize sample tickets on startup
+init_sample_tickets()
+
+# ============================================================================
+# TICKET API ENDPOINTS
+# ============================================================================
+
+@app.get("/api/tickets")
+async def get_tickets(
+    status: Optional[TicketStatus] = None,
+    priority: Optional[TicketPriority] = None,
+    category: Optional[TicketCategory] = None,
+    assigned_to: Optional[str] = None,
+    requester: Optional[str] = None,
+    page: int = 1,
+    limit: int = 20,
+    token: str = ""
+):
+    """Get tickets with filtering and pagination"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.READ_TICKET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Filter tickets
+    filtered_tickets = []
+    for ticket_id, ticket in MOCK_TICKETS.items():
+        if status and ticket["status"] != status:
+            continue
+        if priority and ticket["priority"] != priority:
+            continue
+        if category and ticket["category"] != category:
+            continue
+        if assigned_to and assigned_to.lower() not in (ticket["assigned_to"] or "").lower():
+            continue
+        if requester and requester.lower() not in ticket["requester"].lower():
+            continue
+        
+        filtered_tickets.append(ticket)
+    
+    # Sort by created date (newest first)
+    filtered_tickets.sort(key=lambda x: x["created_at"], reverse=True)
+    
+    # Pagination
+    total = len(filtered_tickets)
+    start = (page - 1) * limit
+    end = start + limit
+    tickets = filtered_tickets[start:end]
+    
+    # Calculate summary statistics
+    stats = {
+        "total_tickets": len(MOCK_TICKETS),
+        "filtered_count": total,
+        "open_tickets": len([t for t in MOCK_TICKETS.values() if t["status"] == TicketStatus.OPEN]),
+        "in_progress_tickets": len([t for t in MOCK_TICKETS.values() if t["status"] == TicketStatus.IN_PROGRESS]),
+        "resolved_tickets": len([t for t in MOCK_TICKETS.values() if t["status"] == TicketStatus.RESOLVED]),
+        "high_priority_tickets": len([t for t in MOCK_TICKETS.values() if t["priority"] in [TicketPriority.HIGH, TicketPriority.URGENT, TicketPriority.CRITICAL]]),
+        "categories": {
+            "hardware": len([t for t in MOCK_TICKETS.values() if t["category"] == TicketCategory.HARDWARE]),
+            "software": len([t for t in MOCK_TICKETS.values() if t["category"] == TicketCategory.SOFTWARE]),
+            "network": len([t for t in MOCK_TICKETS.values() if t["category"] == TicketCategory.NETWORK]),
+            "security": len([t for t in MOCK_TICKETS.values() if t["category"] == TicketCategory.SECURITY])
+        }
+    }
+    
+    return {
+        "tickets": tickets,
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "pages": (total + limit - 1) // limit
+        },
+        "statistics": stats
+    }
+
+@app.get("/api/tickets/{ticket_id}")
+async def get_ticket(ticket_id: str, token: str):
+    """Get ticket details"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.READ_TICKET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if ticket_id not in MOCK_TICKETS:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    ticket = MOCK_TICKETS[ticket_id]
+    
+    # Get comments for this ticket
+    comments = MOCK_TICKET_COMMENTS.get(ticket_id, [])
+    
+    return {
+        "ticket": ticket,
+        "comments": comments
+    }
+
+@app.post("/api/tickets")
+async def create_ticket(ticket_data: TicketCreate, token: str):
+    """Create new ticket"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.CREATE_TICKET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Generate ticket ID
+    ticket_id = f"ticket-{str(uuid.uuid4())[:8]}"
+    
+    # Create new ticket
+    new_ticket = {
+        "id": ticket_id,
+        "title": ticket_data.title,
+        "description": ticket_data.description,
+        "category": ticket_data.category,
+        "type": ticket_data.type,
+        "status": TicketStatus.OPEN,
+        "priority": ticket_data.priority,
+        "requester": current_user["full_name"] if "full_name" in current_user else current_user["username"],
+        "requester_email": ticket_data.requester_email or current_user.get("email", ""),
+        "assigned_to": None,
+        "department": ticket_data.department or "",
+        "location": ticket_data.location or "",
+        "created_at": datetime.now(),
+        "updated_at": datetime.now(),
+        "created_by": current_user["username"],
+        "due_date": ticket_data.due_date,
+        "resolution": None
+    }
+    
+    MOCK_TICKETS[ticket_id] = new_ticket
+    
+    # Log activity
+    log_activity(current_user["username"], "Ticket Created", f"Created ticket: {ticket_data.title} ({ticket_id})")
+    
+    return {"message": "Ticket created successfully", "ticket": new_ticket}
+
+@app.put("/api/tickets/{ticket_id}")
+async def update_ticket(ticket_id: str, ticket_data: TicketUpdate, token: str):
+    """Update ticket information"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.UPDATE_TICKET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if ticket_id not in MOCK_TICKETS:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    ticket = MOCK_TICKETS[ticket_id]
+    
+    # Update ticket fields
+    update_data = ticket_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if value is not None:
+            ticket[field] = value
+    
+    ticket["updated_at"] = datetime.now()
+    
+    # Log activity
+    log_activity(current_user["username"], "Ticket Updated", f"Updated ticket: {ticket['title']} ({ticket_id})")
+    
+    return {"message": "Ticket updated successfully", "ticket": ticket}
+
+@app.delete("/api/tickets/{ticket_id}")
+async def delete_ticket(ticket_id: str, token: str):
+    """Delete ticket"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.DELETE_TICKET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if ticket_id not in MOCK_TICKETS:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    ticket = MOCK_TICKETS[ticket_id]
+    
+    # Soft delete - mark as cancelled
+    ticket["status"] = TicketStatus.CANCELLED
+    ticket["updated_at"] = datetime.now()
+    
+    # Log activity
+    log_activity(current_user["username"], "Ticket Deleted", f"Deleted ticket: {ticket['title']} ({ticket_id})")
+    
+    return {"message": "Ticket deleted successfully"}
+
+@app.post("/api/tickets/{ticket_id}/comments")
+async def add_ticket_comment(ticket_id: str, comment_data: TicketComment, token: str):
+    """Add comment to ticket"""
+    current_user = get_current_user_from_token(token)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    if not has_permission(current_user["role"], Permission.UPDATE_TICKET):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    if ticket_id not in MOCK_TICKETS:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    # Create new comment
+    comment_id = str(uuid.uuid4())
+    new_comment = {
+        "id": comment_id,
+        "ticket_id": ticket_id,
+        "comment": comment_data.comment,
+        "author": current_user["full_name"] if "full_name" in current_user else current_user["username"],
+        "author_username": current_user["username"],
+        "is_internal": comment_data.is_internal,
+        "created_at": datetime.now(),
+        "updated_at": datetime.now()
+    }
+    
+    # Add to comments storage
+    if ticket_id not in MOCK_TICKET_COMMENTS:
+        MOCK_TICKET_COMMENTS[ticket_id] = []
+    
+    MOCK_TICKET_COMMENTS[ticket_id].append(new_comment)
+    
+    # Update ticket timestamp
+    MOCK_TICKETS[ticket_id]["updated_at"] = datetime.now()
+    
+    # Log activity
+    log_activity(current_user["username"], "Comment Added", f"Added comment to ticket: {MOCK_TICKETS[ticket_id]['title']} ({ticket_id})")
+    
+    return {"message": "Comment added successfully", "comment": new_comment}
+
+# =============================================================================
+# INVENTORY MANAGEMENT SYSTEM
+# =============================================================================
+
+# Inventory Models and Enums
+class InventoryCategory(str, Enum):
+    HARDWARE = "hardware"
+    SOFTWARE = "software"
+    FURNITURE = "furniture" 
+    STATIONERY = "stationery"
+    CONSUMABLES = "consumables"
+    EQUIPMENT = "equipment"
+    TOOLS = "tools"
+    ACCESSORIES = "accessories"
+
+class InventoryStatus(str, Enum):
+    AVAILABLE = "available"
+    IN_USE = "in_use"
+    MAINTENANCE = "maintenance"
+    DAMAGED = "damaged"
+    RETIRED = "retired"
+    RESERVED = "reserved"
+    OUT_OF_STOCK = "out_of_stock"
+
+class InventoryCondition(str, Enum):
+    NEW = "new"
+    EXCELLENT = "excellent"
+    GOOD = "good"
+    FAIR = "fair"
+    POOR = "poor"
+    DAMAGED = "damaged"
+
+class InventoryItem(BaseModel):
+    id: Optional[str] = None
+    name: str
+    description: Optional[str] = None
+    category: InventoryCategory
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    barcode: Optional[str] = None
+    status: InventoryStatus = InventoryStatus.AVAILABLE
+    condition: InventoryCondition = InventoryCondition.NEW
+    location: str
+    department: Optional[str] = None
+    assigned_to: Optional[str] = None
+    purchase_date: Optional[str] = None
+    purchase_cost: Optional[float] = None
+    warranty_expiry: Optional[str] = None
+    supplier: Optional[str] = None
+    quantity: int = 1
+    min_quantity: int = 0
+    max_quantity: Optional[int] = None
+    notes: Optional[str] = None
+    created_by: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+class InventoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[InventoryCategory] = None
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    barcode: Optional[str] = None
+    status: Optional[InventoryStatus] = None
+    condition: Optional[InventoryCondition] = None
+    location: Optional[str] = None
+    department: Optional[str] = None
+    assigned_to: Optional[str] = None
+    purchase_date: Optional[str] = None
+    purchase_cost: Optional[float] = None
+    warranty_expiry: Optional[str] = None
+    supplier: Optional[str] = None
+    quantity: Optional[int] = None
+    min_quantity: Optional[int] = None
+    max_quantity: Optional[int] = None
+    notes: Optional[str] = None
+
+# Mock Inventory Data
+MOCK_INVENTORY = {
+    "inv-001": {
+        "id": "inv-001",
+        "name": "Dell OptiPlex 7090",
+        "description": "เครื่องคอมพิวเตอร์เดสก์ท็อป Intel Core i7-11700 8GB RAM 256GB SSD",
+        "category": InventoryCategory.HARDWARE,
+        "brand": "Dell",
+        "model": "OptiPlex 7090",
+        "serial_number": "DL7090001",
+        "barcode": "PC001234567890",
+        "status": InventoryStatus.IN_USE,
+        "condition": InventoryCondition.EXCELLENT,
+        "location": "อาคาร A ชั้น 3 ห้อง 301",
+        "department": "IT Department",
+        "assigned_to": "สมชาย ใจดี",
+        "purchase_date": "2024-01-15",
+        "purchase_cost": 35000.00,
+        "warranty_expiry": "2027-01-15",
+        "supplier": "Dell Thailand",
+        "quantity": 1,
+        "min_quantity": 0,
+        "max_quantity": 1,
+        "notes": "ติดตั้งระบบปฏิบัติการ Windows 11 Pro",
+        "created_by": "admin",
+        "created_at": datetime.now() - timedelta(days=30),
+        "updated_at": datetime.now() - timedelta(days=5)
+    },
+    "inv-002": {
+        "id": "inv-002", 
+        "name": "HP LaserJet Pro MFP M428fdw",
+        "description": "เครื่องพิมพ์เลเซอร์ขาวดำ All-in-One พิมพ์ สแกน ถ่าย แฟกซ์ ไร้สาย",
+        "category": InventoryCategory.EQUIPMENT,
+        "brand": "HP",
+        "model": "LaserJet Pro MFP M428fdw",
+        "serial_number": "HP428001", 
+        "barcode": "PR002234567891",
+        "status": InventoryStatus.AVAILABLE,
+        "condition": InventoryCondition.GOOD,
+        "location": "อาคาร A ชั้น 2 Copy Center",
+        "department": "Administration",
+        "assigned_to": None,
+        "purchase_date": "2023-08-20",
+        "purchase_cost": 15800.00,
+        "warranty_expiry": "2026-08-20",
+        "supplier": "HP Thailand",
+        "quantity": 1,
+        "min_quantity": 0,
+        "max_quantity": 1,
+        "notes": "ตลับหมึกเปลี่ยนล่าสุด: 2024-07-15",
+        "created_by": "admin",
+        "created_at": datetime.now() - timedelta(days=45),
+        "updated_at": datetime.now() - timedelta(days=2)
+    },
+    "inv-003": {
+        "id": "inv-003",
+        "name": "Microsoft Office 365 Business Premium License",
+        "description": "ใบอนุญาตซอฟต์แวร์ Microsoft Office 365 Business Premium รายปี",
+        "category": InventoryCategory.SOFTWARE,
+        "brand": "Microsoft", 
+        "model": "Office 365 Business Premium",
+        "serial_number": None,
+        "barcode": "SW003234567892",
+        "status": InventoryStatus.IN_USE,
+        "condition": InventoryCondition.NEW,
+        "location": "Virtual/Cloud",
+        "department": "All Departments",
+        "assigned_to": "ใช้งานทั่วองค์กร",
+        "purchase_date": "2024-03-01",
+        "purchase_cost": 2400.00,
+        "warranty_expiry": "2025-03-01",
+        "supplier": "Microsoft Thailand",
+        "quantity": 50,
+        "min_quantity": 45,
+        "max_quantity": 100,
+        "notes": "License key: XXXX-XXXX-XXXX-XXXX",
+        "created_by": "admin",
+        "created_at": datetime.now() - timedelta(days=150),
+        "updated_at": datetime.now() - timedelta(days=10)
+    },
+    "inv-004": {
+        "id": "inv-004",
+        "name": "เก้าอี้สำนักงาน Ergonomic",
+        "description": "เก้าอี้สำนักงานปรับระดับได้ มีพนักพิงและที่วางแขน",
+        "category": InventoryCategory.FURNITURE,
+        "brand": "Herman Miller",
+        "model": "Sayl Chair",
+        "serial_number": None,
+        "barcode": "CH004234567893",
+        "status": InventoryStatus.AVAILABLE,
+        "condition": InventoryCondition.GOOD,
+        "location": "คลังเก็บของ ชั้น 1",
+        "department": None,
+        "assigned_to": None,
+        "purchase_date": "2023-12-10",
+        "purchase_cost": 8500.00,
+        "warranty_expiry": "2028-12-10",
+        "supplier": "Office Furniture Co.",
+        "quantity": 5,
+        "min_quantity": 2,
+        "max_quantity": 20,
+        "notes": "สีดำ สำหรับพนักงานใหม่",
+        "created_by": "admin",
+        "created_at": datetime.now() - timedelta(days=80),
+        "updated_at": datetime.now() - timedelta(days=15)
+    },
+    "inv-005": {
+        "id": "inv-005",
+        "name": "กระดาษ A4 80gsm",
+        "description": "กระดาษถ่ายเอกสาร A4 ขนาด 80gsm สีขาว",
+        "category": InventoryCategory.STATIONERY,
+        "brand": "Double A",
+        "model": "A4 80gsm",
+        "serial_number": None,
+        "barcode": "PA005234567894",
+        "status": InventoryStatus.AVAILABLE,
+        "condition": InventoryCondition.NEW,
+        "location": "คลังเก็บของ ชั้น 1 ห้องเก็บเอกสาร",
+        "department": "All Departments",
+        "assigned_to": None,
+        "purchase_date": "2024-08-01",
+        "purchase_cost": 120.00,
+        "warranty_expiry": None,
+        "supplier": "Office Supplies Thailand",
+        "quantity": 50,
+        "min_quantity": 10,
+        "max_quantity": 200,
+        "notes": "500 แผ่นต่อรีม จำนวน 50 รีม",
+        "created_by": "admin", 
+        "created_at": datetime.now() - timedelta(days=25),
+        "updated_at": datetime.now() - timedelta(days=3)
+    },
+    "inv-006": {
+        "id": "inv-006",
+        "name": "UPS APC Smart-UPS 1000VA",
+        "description": "เครื่องสำรองไฟ UPS 1000VA สำหรับเซิร์ฟเวอร์และอุปกรณ์เครือข่าย",
+        "category": InventoryCategory.EQUIPMENT,
+        "brand": "APC",
+        "model": "Smart-UPS SMT1000I",
+        "serial_number": "UPS1000001",
+        "barcode": "UP006234567895",
+        "status": InventoryStatus.MAINTENANCE,
+        "condition": InventoryCondition.FAIR,
+        "location": "ห้องเซิร์ฟเวอร์ ชั้นใต้ดิน",
+        "department": "IT Department",
+        "assigned_to": "IT Infrastructure Team",
+        "purchase_date": "2022-05-15",
+        "purchase_cost": 12500.00,
+        "warranty_expiry": "2025-05-15",
+        "supplier": "APC Thailand",
+        "quantity": 1,
+        "min_quantity": 0,
+        "max_quantity": 1,
+        "notes": "ต้องเปลี่ยนแบตเตอรี่ภายใน 1 เดือน",
+        "created_by": "admin",
+        "created_at": datetime.now() - timedelta(days=200),
+        "updated_at": datetime.now() - timedelta(days=7)
+    }
+}
+
+# Inventory APIs
+@app.get("/api/inventory")
+async def get_inventory(
+    category: Optional[InventoryCategory] = None,
+    status: Optional[InventoryStatus] = None,
+    condition: Optional[InventoryCondition] = None,
+    location: Optional[str] = None,
+    department: Optional[str] = None,
+    assigned_to: Optional[str] = None,
+    search: Optional[str] = None,
+    page: int = 1,
+    limit: int = 20,
+    token: str = ""
+):
+    """Get inventory items with filtering and pagination"""
+    try:
+        # Validate token
+        current_user = get_current_user_from_token(token)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+        # Check permissions
+        if not has_permission(current_user["role"], "read_inventory"):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        # Filter inventory
+        filtered_items = list(MOCK_INVENTORY.values())
+        
+        if category:
+            filtered_items = [item for item in filtered_items if item["category"] == category]
+        if status:
+            filtered_items = [item for item in filtered_items if item["status"] == status]
+        if condition:
+            filtered_items = [item for item in filtered_items if item["condition"] == condition]
+        if location:
+            filtered_items = [item for item in filtered_items if location.lower() in item["location"].lower()]
+        if department:
+            filtered_items = [item for item in filtered_items if item["department"] and department.lower() in item["department"].lower()]
+        if assigned_to:
+            filtered_items = [item for item in filtered_items if item["assigned_to"] and assigned_to.lower() in item["assigned_to"].lower()]
+        if search:
+            search_lower = search.lower()
+            filtered_items = [
+                item for item in filtered_items 
+                if (search_lower in item["name"].lower() or 
+                    (item["description"] and search_lower in item["description"].lower()) or
+                    (item["brand"] and search_lower in item["brand"].lower()) or
+                    (item["model"] and search_lower in item["model"].lower()) or
+                    (item["serial_number"] and search_lower in item["serial_number"].lower()))
+            ]
+        
+        # Sort by created_at (newest first)
+        filtered_items.sort(key=lambda x: x["created_at"], reverse=True)
+        
+        # Calculate pagination
+        total_items = len(filtered_items)
+        total_pages = (total_items + limit - 1) // limit
+        start_index = (page - 1) * limit
+        end_index = start_index + limit
+        paginated_items = filtered_items[start_index:end_index]
+        
+        # Calculate statistics
+        stats = {
+            "total_items": len(MOCK_INVENTORY),
+            "filtered_count": total_items,
+            "available_items": len([item for item in MOCK_INVENTORY.values() if item["status"] == InventoryStatus.AVAILABLE]),
+            "in_use_items": len([item for item in MOCK_INVENTORY.values() if item["status"] == InventoryStatus.IN_USE]),
+            "maintenance_items": len([item for item in MOCK_INVENTORY.values() if item["status"] == InventoryStatus.MAINTENANCE]),
+            "low_stock_items": len([item for item in MOCK_INVENTORY.values() if item["quantity"] <= item["min_quantity"]]),
+            "categories": {
+                "hardware": len([item for item in MOCK_INVENTORY.values() if item["category"] == InventoryCategory.HARDWARE]),
+                "software": len([item for item in MOCK_INVENTORY.values() if item["category"] == InventoryCategory.SOFTWARE]),
+                "furniture": len([item for item in MOCK_INVENTORY.values() if item["category"] == InventoryCategory.FURNITURE]),
+                "equipment": len([item for item in MOCK_INVENTORY.values() if item["category"] == InventoryCategory.EQUIPMENT])
+            }
+        }
+        
+        return {
+            "items": paginated_items,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total_items,
+                "pages": total_pages
+            },
+            "statistics": stats
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/api/inventory/{item_id}")
+async def get_inventory_item(item_id: str, token: str = ""):
+    """Get specific inventory item"""
+    try:
+        # Validate token
+        current_user = get_current_user_from_token(token)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+        # Check permissions
+        if not has_permission(current_user["role"], "read_inventory"):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        if item_id not in MOCK_INVENTORY:
+            raise HTTPException(status_code=404, detail="Inventory item not found")
+        
+        return {"item": MOCK_INVENTORY[item_id]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.post("/api/inventory")
+async def create_inventory_item(item_data: InventoryItem, token: str = ""):
+    """Create new inventory item"""
+    try:
+        # Validate token
+        current_user = get_current_user_from_token(token)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+        # Check permissions
+        if not has_permission(current_user["role"], "create_inventory"):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        # Generate ID
+        item_id = f"inv-{len(MOCK_INVENTORY) + 1:03d}"
+        
+        # Create new item
+        new_item = {
+            "id": item_id,
+            "name": item_data.name,
+            "description": item_data.description,
+            "category": item_data.category,
+            "brand": item_data.brand,
+            "model": item_data.model,
+            "serial_number": item_data.serial_number,
+            "barcode": item_data.barcode,
+            "status": item_data.status,
+            "condition": item_data.condition,
+            "location": item_data.location,
+            "department": item_data.department,
+            "assigned_to": item_data.assigned_to,
+            "purchase_date": item_data.purchase_date,
+            "purchase_cost": item_data.purchase_cost,
+            "warranty_expiry": item_data.warranty_expiry,
+            "supplier": item_data.supplier,
+            "quantity": item_data.quantity,
+            "min_quantity": item_data.min_quantity,
+            "max_quantity": item_data.max_quantity,
+            "notes": item_data.notes,
+            "created_by": current_user["username"],
+            "created_at": datetime.now(),
+            "updated_at": datetime.now()
+        }
+        
+        MOCK_INVENTORY[item_id] = new_item
+        
+        # Log activity
+        log_activity(current_user["username"], "Inventory Item Created", f"Created inventory item: {item_data.name} ({item_id})")
+        
+        return {"message": "Inventory item created successfully", "item": new_item}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.put("/api/inventory/{item_id}")
+async def update_inventory_item(item_id: str, item_data: InventoryUpdate, token: str = ""):
+    """Update existing inventory item"""
+    try:
+        # Validate token
+        current_user = get_current_user_from_token(token)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+        # Check permissions
+        if not has_permission(current_user["role"], "update_inventory"):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        if item_id not in MOCK_INVENTORY:
+            raise HTTPException(status_code=404, detail="Inventory item not found")
+        
+        # Update item
+        item = MOCK_INVENTORY[item_id]
+        update_data = item_data.dict(exclude_unset=True)
+        
+        for field, value in update_data.items():
+            if value is not None:
+                item[field] = value
+        
+        item["updated_at"] = datetime.now()
+        
+        # Log activity
+        log_activity(current_user["username"], "Inventory Item Updated", f"Updated inventory item: {item['name']} ({item_id})")
+        
+        return {"message": "Inventory item updated successfully", "item": item}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.delete("/api/inventory/{item_id}")
+async def delete_inventory_item(item_id: str, token: str = ""):
+    """Delete inventory item"""
+    try:
+        # Validate token
+        current_user = get_current_user_from_token(token)
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+        # Check permissions
+        if not has_permission(current_user["role"], "delete_inventory"):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        
+        if item_id not in MOCK_INVENTORY:
+            raise HTTPException(status_code=404, detail="Inventory item not found")
+        
+        deleted_item = MOCK_INVENTORY[item_id]
+        del MOCK_INVENTORY[item_id]
+        
+        # Log activity
+        log_activity(current_user["username"], "Inventory Item Deleted", f"Deleted inventory item: {deleted_item['name']} ({item_id})")
+        
+        return {"message": "Inventory item deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # API Documentation will be available at /docs
 @app.get("/health")

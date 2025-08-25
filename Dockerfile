@@ -18,11 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create static directory for HTML files
-RUN mkdir -p static
-
-# Copy login.html to static directory
-COPY login.html static/
+# Static files are already included in the app copy above
 
 # Expose port
 EXPOSE 8000
