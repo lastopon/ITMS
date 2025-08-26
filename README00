@@ -1,8 +1,0 @@
-Database = postgres
-language = python
-CRUD operations on ITMS
-Docker
-FastAPI
-CherryPy
-Flask
-Django
