@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content_title %}ITMS Dashboard{% endblock %}
+
+{% block content %}
+    <div class="dashboard-content">
+        <!-- Dashboard Stats -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 32px; font-weight: bold;">{{ app_list|length }}</div>
+                <div style="font-size: 14px; opacity: 0.9; margin-top: 4px;">Applications</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 32px; font-weight: bold;">42</div>
+                <div style="font-size: 14px; opacity: 0.9; margin-top: 4px;">Models</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 32px; font-weight: bold;">{{ user.groups.count }}</div>
+                <div style="font-size: 14px; opacity: 0.9; margin-top: 4px;">Your Groups</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 32px; font-weight: bold;">Active</div>
+                <div style="font-size: 14px; opacity: 0.9; margin-top: 4px;">System Status</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="background: #f8f9fa; border-radius: 8px; padding: 30px; text-align: center;">
+            <h3 style="color: #495057; margin-bottom: 20px; font-size: 20px;">🚀 Quick Actions</h3>
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                <a href="/admin/auth/group/" style="background: #28a745; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+                    👥 Manage Groups
+                </a>
+                <a href="/admin/auth/user/" style="background: #ffc107; color: #212529; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+                    👤 Manage Users
+                </a>
+                <a href="/api/docs/" style="background: #17a2b8; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s;">
+                    📚 API Documentation
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div style="margin-top: 30px;">
+            <h3 style="color: #495057; margin-bottom: 15px;">📋 System Overview</h3>
+            <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px;">
+                <p style="color: #6c757d; margin: 0;">
+                    Welcome to ITMS Administration Dashboard. Use the sidebar navigation to access different modules and manage your IT infrastructure efficiently.
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

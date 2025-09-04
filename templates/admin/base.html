@@ -1,0 +1,453 @@
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/nav_sidebar.css" %}">
+    {% block extrastyle %}{% endblock %}
+    {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/rtl.css" %}">{% endif %}
+    {% block extrahead %}
+        <style>
+            /* ITMS Custom Sidebar Styling */
+            :root {
+                --itms-primary: #007cba;
+                --itms-secondary: #00a8cc;
+                --itms-sidebar-bg: #2c3e50;
+                --itms-sidebar-text: #ecf0f1;
+                --itms-sidebar-active: #3498db;
+                --itms-sidebar-hover: #34495e;
+            }
+
+            /* Layout Structure */
+            .itms-layout {
+                display: flex;
+                min-height: 100vh;
+            }
+
+            /* Custom Sidebar */
+            .itms-sidebar {
+                width: 280px;
+                background: var(--itms-sidebar-bg);
+                color: var(--itms-sidebar-text);
+                position: fixed;
+                height: 100vh;
+                left: 0;
+                top: 0;
+                overflow-y: auto;
+                z-index: 1000;
+                transition: transform 0.3s ease;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            }
+
+            /* Sidebar Header */
+            .sidebar-header {
+                padding: 20px;
+                background: linear-gradient(135deg, var(--itms-primary), var(--itms-secondary));
+                text-align: center;
+                border-bottom: 1px solid #34495e;
+            }
+
+            .sidebar-header h1 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: white;
+            }
+
+            .sidebar-header .subtitle {
+                font-size: 12px;
+                opacity: 0.9;
+                margin-top: 4px;
+            }
+
+            /* Sidebar Navigation */
+            .sidebar-nav {
+                padding: 0;
+                margin: 0;
+                list-style: none;
+            }
+
+            .nav-category {
+                margin: 0;
+            }
+
+            .category-header {
+                padding: 15px 20px 10px;
+                font-size: 11px;
+                text-transform: uppercase;
+                color: #95a5a6;
+                font-weight: 600;
+                letter-spacing: 1px;
+                border-bottom: 1px solid #34495e;
+                background: #34495e;
+            }
+
+            .nav-item {
+                border-bottom: 1px solid #34495e;
+            }
+
+            .nav-item:last-child {
+                border-bottom: none;
+            }
+
+            .nav-link {
+                display: block;
+                padding: 12px 20px;
+                color: var(--itms-sidebar-text);
+                text-decoration: none;
+                transition: all 0.2s ease;
+                border-left: 3px solid transparent;
+                position: relative;
+            }
+
+            .nav-link:hover {
+                background: var(--itms-sidebar-hover);
+                color: white;
+                border-left-color: var(--itms-sidebar-active);
+                padding-left: 25px;
+            }
+
+            .nav-link.active {
+                background: var(--itms-sidebar-active);
+                color: white;
+                border-left-color: #fff;
+            }
+
+            .nav-icon {
+                font-size: 16px;
+                margin-right: 10px;
+                width: 20px;
+                text-align: center;
+            }
+
+            .nav-text {
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .nav-subtitle {
+                font-size: 11px;
+                opacity: 0.7;
+                display: block;
+                margin-top: 2px;
+            }
+
+            /* Main Content */
+            .itms-main {
+                margin-left: 280px;
+                flex: 1;
+                background: #f8f9fa;
+                min-height: 100vh;
+            }
+
+            /* Header in main content */
+            .main-header {
+                background: white;
+                padding: 15px 30px;
+                border-bottom: 1px solid #dee2e6;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+
+            .main-content {
+                padding: 30px;
+            }
+
+            /* Mobile Responsive */
+            @media (max-width: 768px) {
+                .itms-sidebar {
+                    transform: translateX(-100%);
+                    width: 100%;
+                }
+                
+                .itms-sidebar.open {
+                    transform: translateX(0);
+                }
+                
+                .itms-main {
+                    margin-left: 0;
+                }
+                
+                .mobile-toggle {
+                    display: block !important;
+                }
+            }
+
+            .mobile-toggle {
+                display: none;
+                background: var(--itms-primary);
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                margin: 10px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            /* User info in sidebar */
+            .sidebar-user {
+                padding: 15px 20px;
+                border-top: 1px solid #34495e;
+                background: #34495e;
+                margin-top: auto;
+            }
+
+            .user-info {
+                display: flex;
+                align-items: center;
+                color: var(--itms-sidebar-text);
+                font-size: 12px;
+            }
+
+            .user-avatar {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background: var(--itms-primary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 10px;
+                font-weight: bold;
+            }
+
+            /* Override default Django styles */
+            #header { display: none; }
+            #nav-sidebar { display: none; }
+            #content { margin: 0; padding: 0; }
+            .breadcrumbs { display: none; }
+
+            /* Dashboard specific styles */
+            .dashboard-content {
+                background: white;
+                border-radius: 8px;
+                padding: 30px;
+                margin: 20px 0;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            /* Hide original modules in index */
+            .module:not(.custom-module) {
+                display: none;
+            }
+        </style>
+    {% endblock %}
+    {% block responsive %}
+        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive.css" %}">
+    {% endblock %}
+    {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
+</head>
+
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
+  data-admin-utc-offset="{% now "Z" %}">
+    
+    <div class="itms-layout">
+        <!-- Sidebar -->
+        <nav class="itms-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div style="font-size: 24px; margin-bottom: 8px;">🏢</div>
+                <h1>ITMS Admin</h1>
+                <div class="subtitle">IT Management System</div>
+            </div>
+
+            <ul class="sidebar-nav">
+                <!-- Dashboard -->
+                <li class="nav-category">
+                    <div class="category-header">📊 Dashboard</div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:index' %}" class="nav-link">
+                            <span class="nav-icon">🏠</span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- Asset & Inventory Management -->
+                <li class="nav-category">
+                    <div class="category-header">🏢 Asset & Inventory</div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_asset_changelist' %}" class="nav-link">
+                            <span class="nav-icon">📦</span>
+                            <span class="nav-text">Assets</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_category_changelist' %}" class="nav-link">
+                            <span class="nav-icon">📂</span>
+                            <span class="nav-text">Categories</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_location_changelist' %}" class="nav-link">
+                            <span class="nav-icon">📍</span>
+                            <span class="nav-text">Locations</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_vendor_changelist' %}" class="nav-link">
+                            <span class="nav-icon">🏪</span>
+                            <span class="nav-text">Vendors</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_inventoryitem_changelist' %}" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Inventory</span>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- Service Management -->
+                <li class="nav-category">
+                    <div class="category-header">🛠️ Service Management</div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_helpdeskticket_changelist' %}" class="nav-link">
+                            <span class="nav-icon">🎫</span>
+                            <span class="nav-text">Help Desk Tickets</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_servicerequest_changelist' %}" class="nav-link">
+                            <span class="nav-icon">🔧</span>
+                            <span class="nav-text">Service Requests</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_changemanagement_changelist' %}" class="nav-link">
+                            <span class="nav-icon">🔄</span>
+                            <span class="nav-text">Change Management</span>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- Security & Compliance -->
+                <li class="nav-category">
+                    <div class="category-header">🔒 Security & Compliance</div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_securityincident_changelist' %}" class="nav-link">
+                            <span class="nav-icon">🚨</span>
+                            <span class="nav-text">Security Incidents</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:itms_app_auditrecord_changelist' %}" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Audit Records</span>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- User Management -->
+                <li class="nav-category">
+                    <div class="category-header">👥 User Management</div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:accounts_user_changelist' %}" class="nav-link">
+                            <span class="nav-icon">👤</span>
+                            <span class="nav-text">Users</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'admin:auth_group_changelist' %}" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Groups</span>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- User Info at bottom -->
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 500;">{{ user.get_full_name|default:user.username }}</div>
+                        <div style="opacity: 0.7;">
+                            {% if user.is_superuser %}👑 Super Admin{% else %}👤 {{ user.groups.first.name|default:"User" }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="itms-main">
+            <button class="mobile-toggle" onclick="toggleSidebar()">☰ Menu</button>
+            
+            <div class="main-header">
+                {% block breadcrumbs %}
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h1 style="margin: 0; font-size: 24px; color: #333;">{% block content_title %}{% endblock %}</h1>
+                        </div>
+                        <div>
+                            <a href="{% url 'admin:logout' %}" style="color: #666; text-decoration: none; font-size: 14px;">
+                                🚪 Log out
+                            </a>
+                        </div>
+                    </div>
+                {% endblock %}
+            </div>
+
+            <div class="main-content">
+                {% block messages %}
+                    {% if messages %}
+                        <div class="messagelist">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}" style="padding: 10px; margin-bottom: 15px; border-radius: 4px; background: #d4edda; border: 1px solid #c3e6cb; color: #155724;">
+                                    {{ message|capfirst }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endblock messages %}
+
+                <div id="content" class="{% block coltype %}colM{% endblock %}">
+                    {% block pretitle %}{% endblock %}
+                    {% block content_subtitle %}{% endblock %}
+                    {% block content %}
+                        {{ content }}
+                    {% endblock %}
+                    {% block sidebar %}{% endblock %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(event.target) && 
+                !toggle.contains(event.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Set active navigation item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    {% block extrajs %}{% endblock %}
+</body>
+</html>

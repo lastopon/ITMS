@@ -1,0 +1,32 @@
+# Core Django
+Django==4.2.16
+psycopg2-binary==2.9.9
+
+# Production Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# API Framework
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.0
+drf-spectacular==0.27.0
+
+# Utilities
+python-decouple==3.8
+django-cors-headers==4.3.1
+Pillow==10.1.0
+
+# Security & Performance
+django-extensions==3.2.3
+django-environ==0.11.2
+celery==5.3.4
+redis==5.0.1
+django-redis==5.4.0
+django-celery-beat==2.5.0
+
+# Monitoring & Logging
+sentry-sdk==1.38.0
+django-health-check==3.17.0
+
+# Development
+django-debug-toolbar==4.2.0
